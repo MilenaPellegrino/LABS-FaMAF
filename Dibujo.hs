@@ -19,6 +19,9 @@ comp f n = f . comp f (n -1)
 rotar :: Dibujo a -> Dibujo a
 rotar x = Rotar x 
 
+apilar :: Float -> Float -> (Dibujo a) -> (Dibujo a) -> Dibujo a
+apilar size1 size2 dib1 dib2 = Apilar  size1 size2 dib1 dib2
+
 -- Rotaciones de múltiplos de 90.
 r180 :: Dibujo a -> Dibujo a
 r180 = comp rotar 2
@@ -29,8 +32,8 @@ r270 = comp rotar 3
 
 
 -- Pone una figura sobre la otra, ambas ocupan el mismo espacio.
--- (.-.) :: Dibujo a -> Dibujo a -> Dibujo a
-
+(.-.) :: Dibujo a -> Dibujo a -> Dibujo a
+(.-.) = apilar 1 1
 
 -- -- Pone una figura al lado de la otra, ambas ocupan el mismo espacio.
 -- (///) :: Dibujo a -> Dibujo a -> Dibujo a
