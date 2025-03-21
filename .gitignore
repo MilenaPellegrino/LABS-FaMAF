@@ -1,0 +1,7 @@
+*.o
+.vscode/
+gloss.o
+gloss.hi
+gloss.hs
+gloss
+Makefile
