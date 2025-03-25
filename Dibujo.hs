@@ -48,9 +48,8 @@ r270 = comp rotar 3
 (^^^) :: Dibujo a -> Dibujo a -> Dibujo a
 (^^^) = encimar
 
--- Dadas cuatro dibujos las ubica en los cuatro cuadrantes.
-cuarteto :: Dibujo a -> Dibujo a -> Dibujo a -> Dibujo a -> Dibujo a
-cuarteto d1 d2 d3 d4 = Apilar 1 1 (Juntar 1 1 d1 d2) (Juntar 1 1 d3 d4)
+-- -- Dadas cuatro dibujos las ubica en los cuatro cuadrantes.
+-- cuarteto :: Dibujo a -> Dibujo a -> Dibujo a -> Dibujo a -> Dibujo a
 
 -- -- Una dibujo repetido con las cuatro rotaciones, superpuestas.
 -- encimar4 :: Dibujo a -> Dibujo a
