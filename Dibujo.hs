@@ -75,6 +75,10 @@ mapDib f (Apilar s1 s2 d1 d2) = Apilar s1 s2 (mapDib f d1) (mapDib f d2)
 mapDib f (Juntar s1 s2 d1 d2) = Juntar s1 s2 (mapDib f d1) (mapDib f d2)
 mapDib f (Encimar d1 d2) = Encimar (mapDib f d1) (mapDib f d2)
 
+-- -- For testing map
+-- plusOne :: Int -> Int
+-- plusOne x = x + 1
+
 
 -- -- Funcion de fold para Dibujos a
 -- foldDib :: (a -> b) -> (b -> b) -> (b -> b) -> (b -> b) ->

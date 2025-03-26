@@ -1,0 +1,14 @@
+ghci> dib1 = pureDib 3
+ghci> dib2 = pureDib 5
+ghci> dib1
+Basica 3
+ghci> dib2
+Basica 5
+ghci> fst_map = mapDib plusOne dib1
+ghci> fst_map
+Basica 4
+ghci> snd_map = mapDib plusOne dib2
+ghci> snd_map
+Basica 6
+ghci>
+
