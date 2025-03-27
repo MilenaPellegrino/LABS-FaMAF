@@ -68,12 +68,16 @@ ciclar d = cuarteto d (rotar d) (r180 d) (r270 d)
 -- mapDib :: (a -> b) -> Dibujo a -> Dibujo b
 
 
+-- Generalizacion de fold para el tipo Dibujo. 
+-- Las funciones que hagan uso de foldDib ya no tienen que definir el pattern matching para cada constructor del tipo
+-- solo tienen que pasar las funciones que procesan cada constructor y foldDib se encarga de combinar los resultados
+-- sin foldDib en cada funcion con estructura de fold (procesar y combinar) hay que estar definiendo el pattern matching y también
+-- la combinacion de resultados.
 foldDib :: (a -> b) -> (b -> b) -> (b -> b) -> (b -> b) ->
        (Float -> Float -> b -> b -> b) -> 
        (Float -> Float -> b -> b -> b) -> 
        (b -> b -> b) ->
        Dibujo a -> b
-
 foldDib bsf rotf rot45f espf apif junf encf (Basica d) = bsf d
 foldDib bsf rotf rot45f espf apif junf encf (Rotar d) = rotf (foldDib bsf rotf rot45f espf apif junf encf d)
 foldDib bsf rotf rot45f espf apif junf encf (Rotar45 d) = rot45f (foldDib bsf rotf rot45f espf apif junf encf d)
@@ -81,4 +85,8 @@ foldDib bsf rotf rot45f espf apif junf encf (Espejar d) = espf (foldDib bsf rotf
 foldDib bsf rotf rot45f espf apif junf encf (Apilar v1 v2 d1 d2) = apif v1 v2 (foldDib bsf rotf rot45f espf apif junf encf d1) (foldDib bsf rotf rot45f espf apif junf encf d2)
 foldDib bsf rotf rot45f espf apif junf encf (Juntar v1 v2 d1 d2) = junf v1 v2 (foldDib bsf rotf rot45f espf apif junf encf d1) (foldDib bsf rotf rot45f espf apif junf encf d2)
 foldDib bsf rotf rot45f espf apif junf encf (Encimar d1 d2) = encf (foldDib bsf rotf rot45f espf apif junf encf d1) (foldDib bsf rotf rot45f espf apif junf encf d1)
+
+-- Ejemplo con funcion count
+count_basica :: Dibujo a -> Int
+count_basica = foldDib (\x -> 1) (\x -> x) (\x -> x) (\x -> x) (\w x y z -> y + z) (\w x y z -> y + z) (\x y -> x + y)
 
