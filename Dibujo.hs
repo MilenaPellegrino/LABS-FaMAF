@@ -68,9 +68,17 @@ ciclar d = cuarteto d (rotar d) (r180 d) (r270 d)
 -- mapDib :: (a -> b) -> Dibujo a -> Dibujo b
 
 
--- -- Funcion de fold para Dibujos a
--- foldDib :: (a -> b) -> (b -> b) -> (b -> b) -> (b -> b) ->
---        (Float -> Float -> b -> b -> b) -> 
---        (Float -> Float -> b -> b -> b) -> 
---        (b -> b -> b) ->
---        Dibujo a -> b
+foldDib :: (a -> b) -> (b -> b) -> (b -> b) -> (b -> b) ->
+       (Float -> Float -> b -> b -> b) -> 
+       (Float -> Float -> b -> b -> b) -> 
+       (b -> b -> b) ->
+       Dibujo a -> b
+
+foldDib bsf rotf rot45f espf apif junf encf (Basica d) = bsf d
+foldDib bsf rotf rot45f espf apif junf encf (Rotar d) = rotf (foldDib bsf rotf rot45f espf apif junf encf d)
+foldDib bsf rotf rot45f espf apif junf encf (Rotar45 d) = rot45f (foldDib bsf rotf rot45f espf apif junf encf d)
+foldDib bsf rotf rot45f espf apif junf encf (Espejar d) = espf (foldDib bsf rotf rot45f espf apif junf encf d)
+foldDib bsf rotf rot45f espf apif junf encf (Apilar v1 v2 d1 d2) = apif v1 v2 (foldDib bsf rotf rot45f espf apif junf encf d1) (foldDib bsf rotf rot45f espf apif junf encf d2)
+foldDib bsf rotf rot45f espf apif junf encf (Juntar v1 v2 d1 d2) = junf v1 v2 (foldDib bsf rotf rot45f espf apif junf encf d1) (foldDib bsf rotf rot45f espf apif junf encf d2)
+foldDib bsf rotf rot45f espf apif junf encf (Encimar d1 d2) = encf (foldDib bsf rotf rot45f espf apif junf encf d1) (foldDib bsf rotf rot45f espf apif junf encf d1)
+
