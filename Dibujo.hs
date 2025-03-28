@@ -62,10 +62,22 @@ ciclar :: Dibujo a -> Dibujo a
 ciclar d = cuarteto d (rotar d) (r180 d) (r270 d)
 
 -- -- Transfomar un valor de tipo a como una Basica.
--- pureDib :: a -> Dibujo a
+pureDib :: a -> Dibujo a
+pureDib x = Basica x
 
 -- -- map para nuestro lenguaje.
--- mapDib :: (a -> b) -> Dibujo a -> Dibujo b
+mapDib :: (a -> b) -> Dibujo a -> Dibujo b
+mapDib f (Basica x) = Basica (f x)
+mapDib f (Rotar d) = Rotar (mapDib f d)
+mapDib f (Rotar45 d) = Rotar45 (mapDib f d)
+mapDib f (Espejar d) = Espejar (mapDib f d)
+mapDib f (Apilar s1 s2 d1 d2) = Apilar s1 s2 (mapDib f d1) (mapDib f d2)
+mapDib f (Juntar s1 s2 d1 d2) = Juntar s1 s2 (mapDib f d1) (mapDib f d2)
+mapDib f (Encimar d1 d2) = Encimar (mapDib f d1) (mapDib f d2)
+
+-- -- For testing map
+-- plusOne :: Int -> Int
+-- plusOne x = x + 1
 
 
 -- Generalizacion de fold para el tipo Dibujo. 
