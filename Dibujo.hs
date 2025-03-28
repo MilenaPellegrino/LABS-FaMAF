@@ -1,4 +1,4 @@
-module DibujoReal where
+module Dibujo where
 
 -- Definir el lenguaje via constructores de tipo
 data Dibujo a = Basica a 

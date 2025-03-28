@@ -1,0 +1,10 @@
+in.hs:4:1: error:
+    Could not load module ‘Graphics.UI.GLUT.Begin’
+    It is a member of the hidden package ‘GLUT-2.7.0.16’.
+    You can run ‘:set -package GLUT’ to expose it.
+    (Note: this unloads all the modules in the current scope.)
+    Use -v (or `:set -v` in ghci) to see a list of the files searched for.
+  |
+4 | import Graphics.UI.GLUT.Begin
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
