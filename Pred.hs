@@ -47,12 +47,34 @@ esRot360 d = snd (foldDib contarBasica contarRotar contarRotar45 contarEspejar c
         --En Encimar pasa lo mismo
         contarEncimar (_, e1) (_, e2) = (0, e1 || e2)
 
-{- -- Hay 2 espejados seguidos.
+--Hay 2 espejados seguidos. La idea es similar a la función anterior
 esFlip2 :: Pred (Dibujo a)
+esFlip2 d = snd (foldDib contarBasica contarRotar contarRotar45 contarEspejar contarApilar contarJuntar contarEncimar d)
+    where
+        --Funciones auxiliares
+        --"Caso base"
+        contarBasica _ = (0.0, False)
+
+        --Rotar me reinicia el contador
+        contarRotar _ = (0.0, False)
+
+        --Rotar45 me reinicia el contador
+        contarRotar45 _ = (0.0, False)
+
+        -- Espejar suma 1 al contador
+        contarEspejar prev = let (n, encontrado) = prev  -- Desempaquetamos la tupla recibida
+                                 nuevoN = n + 1 
+                             in (nuevoN, encontrado || nuevoN >= 2)
+
+        --En Apilar y Juntar miramos adentro de ambos hijos
+        contarApilar _ _ (_, e1) (_, e2) = (0, e1 || e2)
+        contarJuntar _ _ (_, e1) (_, e2) = (0, e1 || e2)
+
+        --En Encimar pasa lo mismo
+        contarEncimar (_, e1) (_, e2) = (0, e1 || e2)
 
 
-
-
+{-
 data Superfluo = RotacionSuperflua | FlipSuperfluo
 
 ---- Chequea si el dibujo tiene una rotacion superflua
