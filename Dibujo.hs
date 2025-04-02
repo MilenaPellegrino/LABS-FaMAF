@@ -1,4 +1,10 @@
-module Dibujo where
+-- http://aprendehaskell.es/content/Modulos.html Seccion: Creando nuestros propios módulos --
+module Dibujo (Dibujo(..), 
+              apilar, juntar, encimar, 
+              rotar, r180,r270,
+              (^^^),(.-.),(///),comp,
+              cuarteto,encimar4,ciclar,
+              foldDib,mapDib) where
 
 -- Definir el lenguaje via constructores de tipo
 data Dibujo a = Basica a 
@@ -52,8 +58,9 @@ r270 = comp rotar 3
 cuarteto :: Dibujo a -> Dibujo a -> Dibujo a -> Dibujo a -> Dibujo a
 cuarteto d1 d2 d3 d4 = Apilar 1 1 (Juntar 1 1 d1 d2) (Juntar 1 1 d3 d4)
 
--- -- Una dibujo repetido con las cuatro rotaciones, superpuestas.
--- encimar4 :: Dibujo a -> Dibujo a
+-- Una dibujo repetido con las cuatro rotaciones, superpuestas.
+encimar4 :: Dibujo a -> Dibujo a
+encimar4 d = encimar d (encimar (rotar d) (encimar (r180 d) (r270 d)))
 
 
 -- Cuadrado con la misma figura rotada i * 90, para i ∈ {0, ..., 3}.
