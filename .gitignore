@@ -7,3 +7,4 @@ gloss
 Makefile
 *.hi
 notes.txt
+.vimrc
