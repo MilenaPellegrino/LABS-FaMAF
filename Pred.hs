@@ -12,38 +12,45 @@ type Pred a = a -> Bool
 -- segundo argumento con dicha figura.
 -- Por ejemplo, `cambiar (== Triangulo) (\x -> Rotar (Basica x))` rota
 -- todos los triángulos.
-cambiar :: Pred a -> a -> Dibujo a -> Dibujo a
+{- cambiar :: Pred a -> a -> Dibujo a -> Dibujo a
 
 -- Alguna básica satisface el predicado.
 anyDib :: Pred a -> Dibujo a -> Bool
 
 -- Todas las básicas satisfacen el predicado.
-allDib :: Pred a -> Dibujo a -> Bool
+allDib :: Pred a -> Dibujo a -> Bool -}
 
 
 -- Hay 4 rotaciones seguidas.
 esRot360 :: Pred (Dibujo a)
-esRot360 d = fst (foldDib checkRotations resetState id id (\_ _ x y -> max x y) (\_ _ x y -> max x y) max d)
+esRot360 d = snd (foldDib contarBasica contarRotar contarRotar45 contarEspejar contarApilar contarJuntar contarEncimar d)
     where
-        --Estado inicial: (tupla con acumulador de rotaciones consecutivas con un flag de 4 rotaciones seguidas)
-        resetState = (0, False)
+        --Funciones auxiliares
+        --"Caso base"
+        contarBasica _ = (0.0, False)
 
-        --Función para actualizar el estado
-        checkRotations :: a -> (Int, Bool) -> (Int, Bool)
-        checkRotations _ (count, _) 
-            | count >= 4 = (count, True)  -- Ya alcanzamos 4 rotaciones consecutivas
-            | otherwise = (count, False) 
+        --Rotar suma 1 a nuestro contador
+        contarRotar (n, encontrado) = let nuevoN = n + 1.0 
+                                      in (nuevoN, encontrado || nuevoN >= 4.0)
 
-         -- Función para manejar rotaciones
-        rotf :: (Int, Bool) -> (Int, Bool)
-        rotf (count, _) = if count + 1 >= 4 then (4, True) else (count + 1, False)
+        --Rotar45 cuenta como medio rotar
+        contarRotar45 (n, encontrado) = let nuevoN = n + 0.5 
+                                        in (nuevoN, encontrado || nuevoN >= 4.0)
 
-        -- Función para manejar otros tipos de dibujos, que reinicia el contador
-        idf :: (Int, Bool) -> (Int, Bool)
-        idf _ = (0, False)
+        --Espejar reinicia el contador
+        contarEspejar _ = (0.0, False)
 
--- Hay 2 espejados seguidos.
+        --En Apilar y Juntar miramos adentro de ambos hijos
+        contarApilar _ _ (_, e1) (_, e2) = (0, e1 || e2)
+        contarJuntar _ _ (_, e1) (_, e2) = (0, e1 || e2)
+
+        --En Encimar pasa lo mismo
+        contarEncimar (_, e1) (_, e2) = (0, e1 || e2)
+
+{- -- Hay 2 espejados seguidos.
 esFlip2 :: Pred (Dibujo a)
+
+
 
 
 data Superfluo = RotacionSuperflua | FlipSuperfluo
@@ -56,4 +63,4 @@ errorFlip :: Dibujo a -> [Superfluo]
 
 -- Aplica todos los chequeos y acumula todos los errores, y
 -- sólo devuelve la figura si no hubo ningún error.
-checkSuperfluo :: Dibujo a -> Either [Superfluo] (Dibujo a)
+checkSuperfluo :: Dibujo a -> Either [Superfluo] (Dibujo a) -}
