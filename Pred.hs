@@ -75,13 +75,15 @@ esFlip2 d = snd (foldDib contarBasica contarRotar contarRotar45 contarEspejar co
 
 
 
-data Superfluo = RotacionSuperflua | FlipSuperfluo
+data Superfluo = RotacionSuperflua | FlipSuperfluo deriving (Show)
 
 ---- Chequea si el dibujo tiene una rotacion superflua
 errorRotacion :: Dibujo a -> [Superfluo]
+errorRotacion d = if (esRot360 d) then [RotacionSuperflua] else []
 
 -- Chequea si el dibujo tiene un flip superfluo
 errorFlip :: Dibujo a -> [Superfluo]
+errorFlip d = if (esFlip2 d) then [FlipSuperfluo] else []
 
 -- Aplica todos los chequeos y acumula todos los errores, y
 -- sólo devuelve la figura si no hubo ningún error.
