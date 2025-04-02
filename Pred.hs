@@ -12,13 +12,13 @@ type Pred a = a -> Bool
 -- segundo argumento con dicha figura.
 -- Por ejemplo, `cambiar (== Triangulo) (\x -> Rotar (Basica x))` rota
 -- todos los triángulos.
-{- cambiar :: Pred a -> a -> Dibujo a -> Dibujo a
+cambiar :: Pred a -> a -> Dibujo a -> Dibujo a
 
 -- Alguna básica satisface el predicado.
 anyDib :: Pred a -> Dibujo a -> Bool
 
 -- Todas las básicas satisfacen el predicado.
-allDib :: Pred a -> Dibujo a -> Bool -}
+allDib :: Pred a -> Dibujo a -> Bool
 
 
 -- Hay 4 rotaciones seguidas.
@@ -74,7 +74,7 @@ esFlip2 d = snd (foldDib contarBasica contarRotar contarRotar45 contarEspejar co
         contarEncimar (_, e1) (_, e2) = (0, e1 || e2)
 
 
-{-
+
 data Superfluo = RotacionSuperflua | FlipSuperfluo
 
 ---- Chequea si el dibujo tiene una rotacion superflua
@@ -85,4 +85,4 @@ errorFlip :: Dibujo a -> [Superfluo]
 
 -- Aplica todos los chequeos y acumula todos los errores, y
 -- sólo devuelve la figura si no hubo ningún error.
-checkSuperfluo :: Dibujo a -> Either [Superfluo] (Dibujo a) -}
+checkSuperfluo :: Dibujo a -> Either [Superfluo] (Dibujo a)
