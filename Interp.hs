@@ -36,7 +36,7 @@ interp_rotar45 f = \d w h -> f (d V.+ mitad (w V.+ h)) (mitad (w V.+ h)) (mitad 
 --interpreta el operador de apilar
 -- Veri si esta bien porque me da error porque no tengo la de encimar implementada
 interp_apilar :: Int -> Int -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
-interp_apilar m n f1 f2 d w h = interp_encimar (f (d V.+ ((n/(m+n)) V.* h) ) w (m/(m+n) V.* h)) (g d w (n/(m+n) V.* h))
+interp_apilar m n f g d w h = interp_encimar (f (d V.+ ((n/(m+n)) V.* h) ) w (m/(m+n) V.* h)) (g d w (n/(m+n) V.* h))
 
 -- --interpreta el operador de juntar
 -- interp_juntar :: Int -> Int -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
