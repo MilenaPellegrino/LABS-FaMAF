@@ -21,6 +21,12 @@ class Server(object):
     def __init__(self, addr=DEFAULT_ADDR, port=DEFAULT_PORT,
                  directory=DEFAULT_DIR):
         print("Serving %s on %s:%s." % (directory, addr, port))
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s.bind((addr,port))
+        self.dir = directory
+        self.listening = False
+        self.connected = False
+        self.buffer = ' '
         # FALTA: Crear socket del servidor, configurarlo, asignarlo
         # a una dirección y puerto, etc.
 
@@ -30,6 +36,13 @@ class Server(object):
         y se espera a que concluya antes de seguir.
         """
         while True:
+            self.listening = True
+            self.s.listen(1)
+            print("Buennasss")
+            con = self.s.accept()
+            con2 = connection.Connection(con[0], self.dir)
+            con2.handle()
+            con[0].close()
             pass
             # FALTA: Aceptar una conexión al server, crear una
             # Connection para la conexión y atenderla hasta que termine.

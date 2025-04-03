@@ -19,6 +19,7 @@ class Connection(object):
         pass
 
     def handle(self):
+        print("coenectado")
         """
         Atiende eventos de la conexión hasta que termina.
         """
