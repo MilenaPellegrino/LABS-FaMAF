@@ -42,7 +42,7 @@ interp_apilar m n f1 f2 d w h = interp_encimar (f (d V.+ ((n/(m+n)) V.* h) ) w (
 interp_juntar :: Float -> Float -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
 -- f(x, w', h) U g(d+w', r'*w, h) CREO QUE X ES UN ERROR, DEBERÍA SER d
 -- con r'=n/(m+n), r=m/(m+n), w'=r*w
-interp_juntar m n f g d w h = interp_encimar (f (d ((m/m+n) V.* w) h) g ((d + ((m/m+n) V.* w)) ((n/(m+n)) V.* w) h))
+interp_juntar m n f g d w h = interp_encimar (f (d ((m/m+n) V.* w) h) g ((d V.+ ((m/m+n) V.* w)) ((n/(m+n)) V.* w) h))
 
 -- --interpreta el operador de encimar
 -- interp_encimar :: ImagenFlotante -> ImagenFlotante -> ImagenFlotante
