@@ -20,7 +20,6 @@ mitad = (0.5 V.*)
 interp_rotar :: ImagenFlotante -> ImagenFlotante
 interp_rotar f = \d w h -> f (d V.+ w) h (V.negate w)
 
-
 --interpreta el operador de espejar
 interp_espejar :: ImagenFlotante -> ImagenFlotante
 interp_espejar f = \d w h -> f (d V.+ w) (V.negate w) h
@@ -31,22 +30,7 @@ interp_rotar45 f = \d w h -> f (d V.+ mitad (w V.+ h)) (mitad (w V.+ h)) (mitad 
 
 --interpreta el operador de encimar
 interp_encimar :: ImagenFlotante -> ImagenFlotante -> ImagenFlotante
-interp_encimar f g = \d w h -> 
-    pictures [f d w h, g d w h]
-
--- interp_apilar :: Float -> Float -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
--- interp_apilar n m imagen1 imagen2 x w h =
---     let r' = n /  (n + m)
---         r =  m /  (n + m)
---         h' = r V.* h
---     in pictures [imagen1 (x V.+ h') w (r' V.* h), imagen2 x w h']
-
--- interp_juntar :: Float -> Float -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
--- interp_juntar n m imagen1 imagen2 x w h =
---     let r' =  n /  (n + m)
---         r =  m /  (n + m)
---         w' = r' V.* w
---     in pictures [imagen1 x w' h, imagen2 (x V.+ w') (r V.* w) h]
+interp_encimar f g d w h = pictures [f d w h, g d w h]
 
 --interpreta el operador de apilar
 -- Veri si esta bien porque me da error porque no tengo la de encimar implementada
