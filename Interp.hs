@@ -31,17 +31,43 @@ interp_rotar45 f = \d w h -> f (d V.+ mitad (w V.+ h)) (mitad (w V.+ h)) (mitad 
 
 --interpreta el operador de encimar
 interp_encimar :: ImagenFlotante -> ImagenFlotante -> ImagenFlotante
-interp_encimar f g d w h = pictures [f d w h, g d w h]
+interp_encimar f g = \d w h -> 
+    pictures [f d w h, g d w h]
+
+-- interp_apilar :: Float -> Float -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
+-- interp_apilar n m imagen1 imagen2 x w h =
+--     let r' = n /  (n + m)
+--         r =  m /  (n + m)
+--         h' = r V.* h
+--     in pictures [imagen1 (x V.+ h') w (r' V.* h), imagen2 x w h']
+
+-- interp_juntar :: Float -> Float -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
+-- interp_juntar n m imagen1 imagen2 x w h =
+--     let r' =  n /  (n + m)
+--         r =  m /  (n + m)
+--         w' = r' V.* w
+--     in pictures [imagen1 x w' h, imagen2 (x V.+ w') (r V.* w) h]
 
 --interpreta el operador de apilar
 -- Veri si esta bien porque me da error porque no tengo la de encimar implementada
 interp_apilar :: Float -> Float -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
-interp_apilar m n f g d w h = pictures [(f (d V.+ ((n/(m+n)) V.* h) ) w (m/(m+n) V.* h)), (g d w (n/(m+n) V.* h))]
+interp_apilar m n f g d w h = 
+    let 
+        rp = n/(m+n)
+        r = m/(m+n)
+        hp = rp V.* h
+    in
+        pictures [f (d V.+ hp) w (r V.*h), g d w hp]
 
 -- --interpreta el operador de juntar
 interp_juntar :: Float -> Float -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
-interp_juntar m n f g d w h = pictures [f d ((m/m+n) V.* w) h, g (d V.+ ((m/m+n) V.* w)) ((n/(m+n)) V.* w) h]
-
+interp_juntar m n f g d w h = 
+        let 
+        rp = n/(m+n)
+        r = m/(m+n)
+        wp = r V.* w
+    in
+        pictures [f d wp h, g (d V.+ wp) (rp V.* w) h]
 
 -- --interpreta cualquier expresion del tipo Dibujo a
 -- --utilizar foldDib 

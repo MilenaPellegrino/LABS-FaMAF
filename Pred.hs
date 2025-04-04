@@ -1,3 +1,5 @@
+module Pred where
+
 import Dibujo (Dibujo(..), foldDib, mapDib)
 
 
@@ -48,23 +50,68 @@ anyDib pred = foldDib pred id id id (\_ _ a b -> (a||b)) (\_ _ a b -> (a||b)) (|
 allDib :: Pred a -> Dibujo a -> Bool
 allDib pred = foldDib pred id id id (\_ _ a b -> (a&&b)) (\_ _ a b -> (a&&b)) (&&)
 
--- -- Hay 4 rotaciones seguidas.
--- esRot360 :: Pred (Dibujo a)
+-- Hay 4 rotaciones seguidas.
+esRot360 :: Pred (Dibujo a)
+esRot360 d = snd (foldDib contarBasica contarRotar contarRotar45 contarEspejar contarApilar contarJuntar contarEncimar d)
+    where
+        --Funciones auxiliares
+        --"Caso base"
+        contarBasica _ = (0.0, False)
 
+        --Rotar suma 1 a nuestro contador
+        contarRotar (n, encontrado) = let nuevoN = n + 1.0 
+                                      in (nuevoN, encontrado || nuevoN >= 4.0)
 
--- -- Hay 2 espejados seguidos.
--- esFlip2 :: Pred (Dibujo a)
+        --Rotar45 cuenta como medio rotar
+        contarRotar45 (n, encontrado) = let nuevoN = n + 0.5 
+                                        in (nuevoN, encontrado || nuevoN >= 4.0)
 
--- data Superfluo = RotacionSuperflua | FlipSuperfluo
+        --Espejar reinicia el contador
+        contarEspejar _ = (0.0, False)
 
--- ---- Chequea si el dibujo tiene una rotacion superflua
--- errorRotacion :: Dibujo a -> [Superfluo]
+        --En Apilar y Juntar miramos adentro de ambos hijos
+        contarApilar _ _ (_, e1) (_, e2) = (0, e1 || e2)
+        contarJuntar _ _ (_, e1) (_, e2) = (0, e1 || e2)
 
--- -- Chequea si el dibujo tiene un flip superfluo
--- errorFlip :: Dibujo a -> [Superfluo]
+        --En Encimar pasa lo mismo
+        contarEncimar (_, e1) (_, e2) = (0, e1 || e2)
 
--- -- Aplica todos los chequeos y acumula todos los errores, y
--- -- sólo devuelve la figura si no hubo ningún error.
+--Hay 2 espejados seguidos. La idea es similar a la función anterior
+esFlip2 :: Pred (Dibujo a)
+esFlip2 d = snd (foldDib contarBasica contarRotar contarRotar45 contarEspejar contarApilar contarJuntar contarEncimar d)
+    where
+        --Funciones auxiliares
+        --"Caso base"
+        contarBasica _ = (0.0, False)
+
+        --Rotar me reinicia el contador
+        contarRotar _ = (0.0, False)
+
+        --Rotar45 me reinicia el contador
+        contarRotar45 _ = (0.0, False)
+
+        -- Espejar suma 1 al contador
+        contarEspejar prev = let (n, encontrado) = prev  -- Desempaquetamos la tupla recibida
+                                 nuevoN = n + 1 
+                             in (nuevoN, encontrado || nuevoN >= 2)
+
+        --En Apilar y Juntar miramos adentro de ambos hijos
+        contarApilar _ _ (_, e1) (_, e2) = (0, e1 || e2)
+        contarJuntar _ _ (_, e1) (_, e2) = (0, e1 || e2)
+
+        --En Encimar pasa lo mismo
+        contarEncimar (_, e1) (_, e2) = (0, e1 || e2)
+
+data Superfluo = RotacionSuperflua | FlipSuperfluo deriving (Show)
+
+---- Chequea si el dibujo tiene una rotacion superflua
+errorRotacion :: Dibujo a -> [Superfluo]
+errorRotacion d = if (esRot360 d) then [RotacionSuperflua] else []
+
+-- Chequea si el dibujo tiene un flip superfluo
+errorFlip :: Dibujo a -> [Superfluo]
+errorFlip d = if (esFlip2 d) then [FlipSuperfluo] else []
+
+-- Aplica todos los chequeos y acumula todos los errores, y
+-- sólo devuelve la figura si no hubo ningún error.
 -- checkSuperfluo :: Dibujo a -> Either [Superfluo] (Dibujo a)
-
-
