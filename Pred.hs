@@ -114,4 +114,4 @@ errorFlip d = if (esFlip2 d) then [FlipSuperfluo] else []
 
 -- Aplica todos los chequeos y acumula todos los errores, y
 -- sólo devuelve la figura si no hubo ningún error.
-checkSuperfluo :: Dibujo a -> Either [Superfluo] (Dibujo a)
+-- checkSuperfluo :: Dibujo a -> Either [Superfluo] (Dibujo a)
