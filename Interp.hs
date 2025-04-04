@@ -2,14 +2,10 @@ module Interp where
 import Graphics.Gloss
 import Graphics.Gloss.Data.Vector
 import qualified Graphics.Gloss.Data.Point.Arithmetic as V
+import Dibujo
 
 zero :: Point
 zero = (0, 0)
-
--- interp_basica :: Dibujo Int -> Picture
--- interp_basica (Basica 0) = circle 100
--- interp_basica (Basica 1) = rectangleSolid 50 100
-
 
 -- Gloss provee el tipo Vector y Picture.
 type ImagenFlotante = Vector -> Vector -> Vector -> Picture
@@ -33,18 +29,28 @@ interp_espejar f = \d w h -> f (d V.+ w) (V.negate w) h
 interp_rotar45 :: ImagenFlotante -> ImagenFlotante
 interp_rotar45 f = \d w h -> f (d V.+ mitad (w V.+ h)) (mitad (w V.+ h)) (mitad (h V.- w))
 
+--interpreta el operador de encimar
+interp_encimar :: ImagenFlotante -> ImagenFlotante -> ImagenFlotante
+interp_encimar f g d w h = pictures [f d w h, g d w h]
+
 --interpreta el operador de apilar
 -- Veri si esta bien porque me da error porque no tengo la de encimar implementada
-interp_apilar :: Int -> Int -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
-interp_apilar m n f1 f2 d w h = interp_encimar (f (d V.+ ((n/(m+n)) V.* h) ) w (m/(m+n) V.* h)) (g d w (n/(m+n) V.* h))
+interp_apilar :: Float -> Float -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
+interp_apilar m n f g d w h = pictures [(f (d V.+ ((n/(m+n)) V.* h) ) w (m/(m+n) V.* h)), (g d w (n/(m+n) V.* h))]
 
 -- --interpreta el operador de juntar
--- interp_juntar :: Int -> Int -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
+interp_juntar :: Float -> Float -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
+interp_juntar m n f g d w h = pictures [f d ((m/m+n) V.* w) h, g (d V.+ ((m/m+n) V.* w)) ((n/(m+n)) V.* w) h]
 
--- --interpreta el operador de encimar
--- interp_encimar :: ImagenFlotante -> ImagenFlotante -> ImagenFlotante
 
 -- --interpreta cualquier expresion del tipo Dibujo a
 -- --utilizar foldDib 
--- interp :: Interpretacion a -> Dibujo a -> ImagenFlotante
-
+interp :: Interpretacion a -> Dibujo a -> ImagenFlotante
+interp interp_basica dib = foldDib (interp_basica)
+                                   (interp_rotar) 
+                                   (interp_rotar45) 
+                                   (interp_espejar) 
+                                   (interp_apilar) 
+                                   (interp_juntar) 
+                                   (interp_encimar)
+                                   dib

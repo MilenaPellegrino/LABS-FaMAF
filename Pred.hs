@@ -5,20 +5,20 @@ type Pred a = a -> Bool
 
 --- EJEMPLOS PARA TESTS 
 
-data Figura = Triangulo Float Float
-            | Rectangulo Float Float
-            | Circulo Float
-            deriving (Eq,Show)
+-- data Figura = Triangulo Float Float
+--             | Rectangulo Float Float
+--             | Circulo Float
+--             deriving (Eq,Show)
 
 
-esGrande :: Pred Figura
-esGrande (Triangulo base altura) = (base * altura / 2) > 100
-esGrande (Rectangulo base altura) = (base * altura) > 100
-esGrande (Circulo radio) = (pi * radio^2) > 100
+-- esGrande :: Pred Figura
+-- esGrande (Triangulo base altura) = (base * altura / 2) > 100
+-- esGrande (Rectangulo base altura) = (base * altura) > 100
+-- esGrande (Circulo radio) = (pi * radio^2) > 100
 
-esTriangulo :: Pred Figura
-esTriangulo (Triangulo _ _) = True
-esTriangulo _ = False
+-- esTriangulo :: Pred Figura
+-- esTriangulo (Triangulo _ _) = True
+-- esTriangulo _ = False
 
 -- ghci> let dib1 = Basica (Rectangulo 10 5)
 -- ghci> anyDib esGrande dib1
