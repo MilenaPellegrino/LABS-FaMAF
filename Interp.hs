@@ -20,7 +20,6 @@ mitad = (0.5 V.*)
 interp_rotar :: ImagenFlotante -> ImagenFlotante
 interp_rotar f = \d w h -> f (d V.+ w) h (V.negate w)
 
-
 --interpreta el operador de espejar
 interp_espejar :: ImagenFlotante -> ImagenFlotante
 interp_espejar f = \d w h -> f (d V.+ w) (V.negate w) h
@@ -41,7 +40,6 @@ interp_apilar m n f g d w h = pictures [(f (d V.+ ((n/(m+n)) V.* h) ) w (m/(m+n)
 -- --interpreta el operador de juntar
 interp_juntar :: Float -> Float -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
 interp_juntar m n f g d w h = pictures [f d ((m/m+n) V.* w) h, g (d V.+ ((m/m+n) V.* w)) ((n/(m+n)) V.* w) h]
-
 
 -- --interpreta cualquier expresion del tipo Dibujo a
 -- --utilizar foldDib 
