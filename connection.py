@@ -15,12 +15,40 @@ class Connection(object):
     """
 
     def __init__(self, socket, directory):
-        # FALTA: Inicializar atributos de Connection
-        pass
+        self.s = socket
+        self.dir = directory
+        self.buffer = ''
+        self.connected = True
 
     def handle(self):
-        print("coenectado")
-        """
-        Atiende eventos de la conexión hasta que termina.
-        """
-        pass
+        print("Entramos a handle")
+        while self.connected:
+            data = self.s.recv(4096).decode("ascii")
+            while len(data) != 0:
+                self.buffer += data
+                data = self.s.recv(4096).decode("ascii")
+            
+            #self.buffer = self.buffer[:EOL]
+            message = self.buffer.split()
+            print("conectado 2")
+            print(message)
+            match message[0]:
+                case "quit":
+                    print("Conectado 3")
+                    self.quit
+                    #case "get_file_listing":
+                    #    self.get_file_listing
+                    #case "get_metadata":
+                    #    self.get_metadata
+                    #case "get_slice":
+                    #    self.get_slice
+                case _:
+                    print("No entro a ningún caso")
+                
+
+    def quit(self):
+        print("Conectado 4")
+        message = CODE_OK ++ EOL
+        self.s.send(message.encode("ascii"))
+        self.connected = False
+        

@@ -43,7 +43,6 @@ class Server(object):
             con2 = connection.Connection(con[0], self.dir)
             con2.handle()
             con[0].close()
-            pass
             # FALTA: Aceptar una conexión al server, crear una
             # Connection para la conexión y atenderla hasta que termine.
 
