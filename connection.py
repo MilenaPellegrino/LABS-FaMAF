@@ -24,18 +24,24 @@ class Connection(object):
         print("Entramos a handle")
         while self.connected:
             data = self.s.recv(4096).decode("ascii")
-            while len(data) != 0:
+            self.buffer = ''
+            while data:
                 self.buffer += data
-                data = self.s.recv(4096).decode("ascii")
-            
-            #self.buffer = self.buffer[:EOL]
+                if "/r/n" in self.buffer:
+                    data = None 
+                else:
+                    data = self.s.recv(4096).decode("ascii")
+            self.buffer = self.buffer.split("/r/n")[0]
             message = self.buffer.split()
-            print("conectado 2")
             print(message)
             match message[0]:
                 case "quit":
-                    print("Conectado 3")
-                    self.quit
+                    if (len(message)==1):
+                        self.quit()
+                    else:
+                        code = str(BAD_REQUEST) + EOL
+                        self.s.send(code.encode("ascii"))
+                        
                     #case "get_file_listing":
                     #    self.get_file_listing
                     #case "get_metadata":
@@ -43,12 +49,13 @@ class Connection(object):
                     #case "get_slice":
                     #    self.get_slice
                 case _:
-                    print("No entro a ningún caso")
+                    code = str(BAD_REQUEST) + EOL
+                    self.s.send(code.encode("ascii"))
                 
 
     def quit(self):
         print("Conectado 4")
-        message = CODE_OK ++ EOL
-        self.s.send(message.encode("ascii"))
+        code = str(CODE_OK) + EOL
+        self.s.send(code.encode("ascii"))
         self.connected = False
         
