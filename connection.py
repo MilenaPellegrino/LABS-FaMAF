@@ -15,12 +15,13 @@ class Connection(object):
     """
 
     def __init__(self, socket, directory):
-        # FALTA: Inicializar atributos de Connection
         pass
+
 
     def handle(self):
         print("coenectado")
         """
         Atiende eventos de la conexión hasta que termina.
         """
+
         pass
