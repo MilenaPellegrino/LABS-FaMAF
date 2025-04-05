@@ -105,7 +105,6 @@ foldDib bsf rotf rot45f espf apif junf encf (Apilar v1 v2 d1 d2) = apif v1 v2 (f
 foldDib bsf rotf rot45f espf apif junf encf (Juntar v1 v2 d1 d2) = junf v1 v2 (foldDib bsf rotf rot45f espf apif junf encf d1) (foldDib bsf rotf rot45f espf apif junf encf d2)
 foldDib bsf rotf rot45f espf apif junf encf (Encimar d1 d2) = encf (foldDib bsf rotf rot45f espf apif junf encf d1) (foldDib bsf rotf rot45f espf apif junf encf d2)
 
-
 -- Ejemplo con funcion count
 count_basica :: Dibujo a -> Int
 count_basica = foldDib (\x -> 1) (\x -> x) (\x -> x) (\x -> x) (\w x y z -> y + z) (\w x y z -> y + z) (\x y -> x + y)
