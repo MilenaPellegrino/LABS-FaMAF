@@ -128,3 +128,4 @@ escher n p = noneto e l (r270 e) (Rotar l) u (r270 l) (Rotar e) (r180 l) (r180 e
     l = lado n $ Basica p
     u = dibujoU $ Basica p
 
+
