@@ -1,4 +1,4 @@
-module Basica.Escher_zulip where
+module Basica.Escher where
 import Graphics.Gloss
 import qualified Graphics.Gloss.Data.Point.Arithmetic as V
 import Dibujo
