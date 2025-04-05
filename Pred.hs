@@ -117,6 +117,6 @@ errorFlip d = if (esFlip2 d) then [FlipSuperfluo] else []
 checkSuperfluo :: Dibujo a -> Either [Superfluo] (Dibujo a)
 checkSuperfluo d = 
     let errores = errorRotacion d ++ errorFlip d
-    in if null
+    in if null errores
         then Right d
         else Left errores
