@@ -50,7 +50,6 @@ ejCentro ancho alto = Conf {
               , r = moverCentro ancho alto
               }
 
-
 -- Dada una computación que construye una configuración, mostramos por
 -- pantalla la figura de la misma de acuerdo a la interpretación para
 -- las figuras básicas. Permitimos una computación para poder leer
