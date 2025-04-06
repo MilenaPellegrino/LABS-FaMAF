@@ -10,8 +10,8 @@ type Pred a = a -> Bool
 -- data Figura = Triangulo Float Float
 --             | Rectangulo Float Float
 --             | Circulo Float
---             deriving (Eq,Show)
-
+--              deriving (Eq,Show)
+-- 
 
 -- esGrande :: Pred Figura
 -- esGrande (Triangulo base altura) = (base * altura / 2) > 100
@@ -25,6 +25,7 @@ type Pred a = a -> Bool
 -- ghci> let dib1 = Basica (Rectangulo 10 5)
 -- ghci> anyDib esGrande dib1
 -- False
+
 --- FIN EJEMPLOS PARA TESTS
 
 --Para la definiciones de la funciones de este modulo, no pueden utilizar
@@ -35,12 +36,21 @@ type Pred a = a -> Bool
 -- segundo argumento con dicha figura.
 -- Por ejemplo, `cambiar (== Triangulo) (\x -> Rotar (Basica x))` rota
 -- todos los triángulos.
--- cambiar :: Pred a -> a -> Dibujo a -> Dibujo a -> Dibujo a
--- cambiar pred f dib = mapDib (\x -> if pred x then f x else dib) dib
-
---cambiar :: Pred a -> (a -> Dibujo a) -> Dibujo a -> Dibujo a
---cambiar pred f = mapDib (\x -> if pred x then f x else  x)
-
+-- TEST CAMBIAR
+-- ghci> d = Basica (Triangulo 10 10)
+-- ghci> cambiar esTriangulo (\x -> Rotar (Basica x)) d
+-- Rotar (Basica (Triangulo 10.0 10.0))
+-- ghci>
+-- FIN TEST
+cambiar :: Pred a -> (a -> Dibujo a) -> Dibujo a -> Dibujo a
+cambiar pred f = foldDib
+    (\x -> if pred x then f x else Basica x) -- Definicion para basica
+    Rotar                                    -- Definicion para los otros constructores 
+    Rotar45 
+    Espejar
+    Apilar
+    Juntar
+    Encimar
 
 --Alguna básica satisface el predicado.
 anyDib :: Pred a -> Dibujo a -> Bool
