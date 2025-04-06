@@ -32,7 +32,7 @@ class Connection(object):
                     data = None 
                 else:
                     data = self.s.recv(4096).decode("ascii")
-            self.buffer = self.buffer.split("/r/n")[0]
+            self.buffer = self.buffer.split(EOL)[0]
             message = self.buffer.split()
             print(message)
             match message[0]:
