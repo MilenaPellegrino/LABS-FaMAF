@@ -6,6 +6,7 @@
 import socket
 from constants import *
 from base64 import b64encode
+import os
 
 class Connection(object):
     """
@@ -27,11 +28,11 @@ class Connection(object):
             self.buffer = ''
             while data:
                 self.buffer += data
-                if "/r/n" in self.buffer:
+                if EOL in self.buffer:
                     data = None 
                 else:
                     data = self.s.recv(4096).decode("ascii")
-            self.buffer = self.buffer.split("/r/n")[0]
+            self.buffer = self.buffer.split(EOL)[0]
             message = self.buffer.split()
             print(message)
             match message[0]:
@@ -42,12 +43,12 @@ class Connection(object):
                         code = str(BAD_REQUEST) + EOL
                         self.s.send(code.encode("ascii"))
                         
-                    #case "get_file_listing":
-                    #    self.get_file_listing
-                    #case "get_metadata":
-                    #    self.get_metadata
-                    #case "get_slice":
-                    #    self.get_slice
+                case "get_file_listing":
+                    self.get_file_listing()
+                case "get_metadata":
+                    self.get_metadata
+                case "get_slice":
+                    self.get_slice
                 case _:
                     code = str(BAD_REQUEST) + EOL
                     self.s.send(code.encode("ascii"))
@@ -55,7 +56,53 @@ class Connection(object):
 
     def quit(self):
         print("Conectado 4")
-        code = str(CODE_OK) + EOL
-        self.s.send(code.encode("ascii"))
+        # code = str(CODE_OK) + EOL Creo que aca tendria que decir "OK"
+        # Segun el enunciado y en algunos ejemplos de comandos
+        resp = resp_formato(CODE_OK)
+        self.s.send(resp.encode("ascii"))
         self.connected = False
         
+    def get_file_listing(self):
+        """
+        Permite al cliente solicitar al servidor la lista de archivos disponibles en el directorio 
+        Respuesta: 
+            0 OK\r\n
+            archivo1.txt\r\n
+            archivo2.jpg\r\n
+            \r\n
+        """
+        # Obtenemos todos los archivos en el directorio
+        files = os.listdir(self.dir)
+
+        # La primera linea tine que ser: 0 OK\r\n
+        resp = resp_formato(CODE_OK)
+
+        for file in files:
+            resp += file + EOL
+
+        # Linea vacia del final
+        response += EOL
+
+        self.s.send(response.encode("ascii"))
+
+    def get_metadata(self):
+        pass
+
+    def get_slice(self):
+        pass
+
+def resp_formato(self, code):
+    """
+    Devuelve la respuesta formateada según el código de estado.
+    Formato de la respuesta: "<código> <mensaje de error>\r\n"
+    """
+    if not valid_status(code):
+        # Ni idea que hacer si no es ninguno de nuestras lista de codigos de estado
+        pass
+
+    # Si el código representa un error fatal, se cierra la conexión
+    if fatal_status(code):
+        self.connected = False
+
+    # el f-string pasa todo a string y no necesitamos hacer str(code)
+    return f"{code} {error_messages[code]}{EOL}"
