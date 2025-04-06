@@ -44,21 +44,37 @@ class Connection(object):
                         self.s.send(code.encode("ascii"))
                         
                 case "get_file_listing":
-                    self.get_file_listing()
+                    if (len(message)==1):
+                        self.get_file_listing()
+                    else:
+                        code = str(BAD_REQUEST) + EOL
+                        self.s.send(code.encode("ascii"))
                 case "get_metadata":
-                    self.get_metadata
+                    self.get_metadata()
                 case "get_slice":
-                    self.get_slice
+                    self.get_slice()
                 case _:
                     code = str(BAD_REQUEST) + EOL
                     self.s.send(code.encode("ascii"))
                 
+    def resp_formato(self, code):
+        """
+        Devuelve la respuesta formateada según el código de estado.
+        Formato de la respuesta: "<código> <mensaje de error>\r\n"
+        """
+        if not valid_status(code):
+            # Ni idea que hacer si no es ninguno de nuestras lista de codigos de estado
+            pass
+        # Si el código representa un error fatal, se cierra la conexión
+        if fatal_status(code):
+            self.connected = False
+        # el f-string pasa todo a string y no necesitamos hacer str(code)
+        return f"{code} {error_messages[code]}{EOL}"
 
     def quit(self):
-        print("Conectado 4")
         # code = str(CODE_OK) + EOL Creo que aca tendria que decir "OK"
         # Segun el enunciado y en algunos ejemplos de comandos
-        resp = resp_formato(CODE_OK)
+        resp = self.resp_formato(CODE_OK)
         self.s.send(resp.encode("ascii"))
         self.connected = False
         
@@ -73,17 +89,13 @@ class Connection(object):
         """
         # Obtenemos todos los archivos en el directorio
         files = os.listdir(self.dir)
-
         # La primera linea tine que ser: 0 OK\r\n
-        resp = resp_formato(CODE_OK)
-
+        resp = self.resp_formato(CODE_OK)
         for file in files:
             resp += file + EOL
-
         # Linea vacia del final
-        response += EOL
-
-        self.s.send(response.encode("ascii"))
+        resp += EOL
+        self.s.send(resp.encode("ascii"))
 
     def get_metadata(self):
         pass
@@ -91,18 +103,3 @@ class Connection(object):
     def get_slice(self):
         pass
 
-def resp_formato(self, code):
-    """
-    Devuelve la respuesta formateada según el código de estado.
-    Formato de la respuesta: "<código> <mensaje de error>\r\n"
-    """
-    if not valid_status(code):
-        # Ni idea que hacer si no es ninguno de nuestras lista de codigos de estado
-        pass
-
-    # Si el código representa un error fatal, se cierra la conexión
-    if fatal_status(code):
-        self.connected = False
-
-    # el f-string pasa todo a string y no necesitamos hacer str(code)
-    return f"{code} {error_messages[code]}{EOL}"
