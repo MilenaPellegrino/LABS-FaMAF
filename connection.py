@@ -32,7 +32,7 @@ class Connection(object):
                     data = None 
                 else:
                     data = self.s.recv(4096).decode("ascii")
-            self.buffer = self.buffer.split("/r/n")[0]
+            self.buffer = self.buffer.split(EOL)[0]
             message = self.buffer.split()
             print(message)
             match message[0]:
@@ -46,19 +46,18 @@ class Connection(object):
                 case "get_file_listing":
                     self.get_file_listing()
                 case "get_metadata":
-                    self.get_metadata
+                    self.get_metadata()
                 case "get_slice":
-                    self.get_slice
+                    self.get_slice()
                 case _:
                     code = str(BAD_REQUEST) + EOL
                     self.s.send(code.encode("ascii"))
-                
 
     def quit(self):
         print("Conectado 4")
         # code = str(CODE_OK) + EOL Creo que aca tendria que decir "OK"
         # Segun el enunciado y en algunos ejemplos de comandos
-        resp = resp_formato(CODE_OK)
+        resp = resp_formato(self, CODE_OK)
         self.s.send(resp.encode("ascii"))
         self.connected = False
         
@@ -75,15 +74,15 @@ class Connection(object):
         files = os.listdir(self.dir)
 
         # La primera linea tine que ser: 0 OK\r\n
-        resp = resp_formato(CODE_OK)
+        resp = resp_formato(self, CODE_OK)
 
         for file in files:
             resp += file + EOL
 
         # Linea vacia del final
-        response += EOL
+        resp += EOL
 
-        self.s.send(response.encode("ascii"))
+        self.s.send(resp.encode("ascii"))
 
     def get_metadata(self):
         pass
