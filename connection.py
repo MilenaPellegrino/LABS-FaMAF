@@ -52,7 +52,7 @@ class Connection(object):
                 case "get_metadata":
                     self.get_metadata()
                 case "get_slice":
-                    self.get_slice()
+                    self.get_slice(message[1], message[2], message[3])
                 case _:
                     code = str(BAD_REQUEST) + EOL
                     self.s.send(code.encode("ascii"))
@@ -86,8 +86,17 @@ class Connection(object):
     def get_metadata(self):
         pass
 
-    def get_slice(self):
-        pass
+    def get_slice(self, filename, offset, size):
+        if int(offset) >= 0 and int(size) >= 0:
+            file = os.open(self.dir+"/"+filename,os.O_RDONLY)
+            resp = resp_formato(self, CODE_OK)
+            ret = os.pread(file, int(size), int(offset))
+            ret = str(b64encode(ret))
+            ret = ret.split("'")[1]
+            resp += ret
+            resp += EOL
+            self.s.send(resp.encode("ascii"))
+            os.close(file)
 
 def resp_formato(self, code):
     """
