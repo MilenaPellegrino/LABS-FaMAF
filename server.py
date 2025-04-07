@@ -9,6 +9,7 @@
 import optparse
 import socket
 import connection
+import os
 from constants import *
 
 
@@ -25,9 +26,6 @@ class Server(object):
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
         self.s.bind((addr,port))
         self.dir = directory
-        self.listening = False
-        self.connected = False
-        self.buffer = ' '
         # FALTA: Crear socket del servidor, configurarlo, asignarlo
         # a una dirección y puerto, etc.
 
@@ -37,16 +35,26 @@ class Server(object):
         y se espera a que concluya antes de seguir.
         """
         while True:
-            self.listening = True
-            self.s.listen(1)
-            print("Buennasss")
-            con = self.s.accept()
-            con2 = connection.Connection(con[0], self.dir)
-            con2.handle()
-            con[0].close()
-            # FALTA: Aceptar una conexión al server, crear una
-            # Connection para la conexión y atenderla hasta que termine.
+            self.s.listen(1) #Espero una conexion a la vez?
+            try:
+                socket_con = self.s.accept()[0]
+                pid = os.fork()
+                # Iniciar proceso hijo
+                if (pid == 0): # En caso de hijo
+                    con = connection.Connection(socket_con, self.dir)
+                    con.handle()
+                    socket_con.close()
+                    break
+                elif (pid > 0): # En caso de padre
+                    socket_con.close()
+                    # No espero al hijo pues no necesito su resultado'
+                    pass
+            except (OSError, EOFError):
+                #En caso de error con alguna funcion de os o llamada a CTRL+D
+                break
+            pass
 
+            
 
 def main():
     """Parsea los argumentos y lanza el server"""
