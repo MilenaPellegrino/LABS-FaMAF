@@ -50,7 +50,7 @@ class Connection(object):
                         code = str(BAD_REQUEST) + EOL
                         self.s.send(code.encode("ascii"))
                 case "get_metadata":
-                    self.get_metadata()
+                    self.get_metadata(message[1])
                 case "get_slice":
                     self.get_slice()
                 case _:
@@ -83,23 +83,34 @@ class Connection(object):
         resp += EOL
         self.s.send(resp.encode("ascii"))
 
-    def get_metadata(self):
-        try:
-            filename = self.buffer.split()[1]
-        except IndexError:
-            self.s.send((str(BAD_REQUEST) + EOL).encode("ascii"))
-            return
+#Agregué el parametro filename que es dado desde handle que es el metodo
+#que llama a los demás, chequea el case =="get_metadata"
+    def get_metadata(self, filename):
+        
+        #acá le cambie el nombre a la variable
+        filepath = os.path.join(self.dir, filename)
 
-        path = os.path.join(self.dir, filename)
-
-        if not os.path.isfile(path):
+        if not os.path.isfile(filepath):
             self.s.send((str(FILE_NOT_FOUND) + EOL).encode("ascii"))
             return
 
-        stat_info = os.stat(path)
+        stat_info = os.stat(filepath)
 
-        response = "{} {}{}".format(filename, stat_info.st_size, EOL)
-        self.s.send(response.encode("ascii"))
+        #Creamos el método resp_format para poder darle formato de los
+        #códigos que le ponemos de parametro, la idea es usar eso
+        #esta función, agrega directamente el EOL
+        resp = resp_formato(self, CODE_OK)
+
+        #Fijate en la consigna del lab, la respuesta esperada solo contiene
+        #<codigo de exito> + EOL
+        #<Tamaño del archivo> + EOL
+        resp += str(stat_info.st_size)
+        resp += EOL
+        self.s.send(resp.encode("ascii"))
+
+        #FALTAN TODOS LOS POSIBLES ERRORES
+        #INVALID_REQUEST lo vamos a manejar en handle, pero falta otros
+        #El que yo agregaría acá es el de INTERNAL_ERROR
 
     def get_slice(self):
         pass
