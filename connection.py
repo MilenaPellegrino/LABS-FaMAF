@@ -84,7 +84,22 @@ class Connection(object):
         self.s.send(resp.encode("ascii"))
 
     def get_metadata(self):
-        pass
+        try:
+            filename = self.buffer.split()[1]
+        except IndexError:
+            self.s.send((str(BAD_REQUEST) + EOL).encode("ascii"))
+            return
+
+        path = os.path.join(self.dir, filename)
+
+        if not os.path.isfile(path):
+            self.s.send((str(FILE_NOT_FOUND) + EOL).encode("ascii"))
+            return
+
+        stat_info = os.stat(path)
+
+        response = "{} {}{}".format(filename, stat_info.st_size, EOL)
+        self.s.send(response.encode("ascii"))
 
     def get_slice(self):
         pass
