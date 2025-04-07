@@ -56,25 +56,11 @@ class Connection(object):
                 case _:
                     code = str(BAD_REQUEST) + EOL
                     self.s.send(code.encode("ascii"))
-                
-    def resp_formato(self, code):
-        """
-        Devuelve la respuesta formateada según el código de estado.
-        Formato de la respuesta: "<código> <mensaje de error>\r\n"
-        """
-        if not valid_status(code):
-            # Ni idea que hacer si no es ninguno de nuestras lista de codigos de estado
-            pass
-        # Si el código representa un error fatal, se cierra la conexión
-        if fatal_status(code):
-            self.connected = False
-        # el f-string pasa todo a string y no necesitamos hacer str(code)
-        return f"{code} {error_messages[code]}{EOL}"
 
     def quit(self):
         # code = str(CODE_OK) + EOL Creo que aca tendria que decir "OK"
         # Segun el enunciado y en algunos ejemplos de comandos
-        resp = self.resp_formato(CODE_OK)
+        resp = resp_formato(self, CODE_OK)
         self.s.send(resp.encode("ascii"))
         self.connected = False
         
@@ -90,7 +76,7 @@ class Connection(object):
         # Obtenemos todos los archivos en el directorio
         files = os.listdir(self.dir)
         # La primera linea tine que ser: 0 OK\r\n
-        resp = self.resp_formato(CODE_OK)
+        resp = resp_formato(self, CODE_OK)
         for file in files:
             resp += file + EOL
         # Linea vacia del final
@@ -103,3 +89,16 @@ class Connection(object):
     def get_slice(self):
         pass
 
+def resp_formato(self, code):
+    """
+    Devuelve la respuesta formateada según el código de estado.
+    Formato de la respuesta: "<código> <mensaje de error>\r\n"
+    """
+    if not valid_status(code):
+        # Ni idea que hacer si no es ninguno de nuestras lista de codigos de estado
+        pass
+    # Si el código representa un error fatal, se cierra la conexión
+    if fatal_status(code):
+        self.connected = False
+    # el f-string pasa todo a string y no necesitamos hacer str(code)
+    return f"{code} {error_messages[code]}{EOL}"
