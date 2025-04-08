@@ -50,7 +50,7 @@ class Connection(object):
                         code = str(BAD_REQUEST) + EOL
                         self.s.send(code.encode("ascii"))
                 case "get_metadata":
-                    self.get_metadata()
+                    self.get_metadata(message[1])
                 case "get_slice":
                     self.get_slice(message[1], message[2], message[3])
                 case _:
@@ -83,8 +83,37 @@ class Connection(object):
         resp += EOL
         self.s.send(resp.encode("ascii"))
 
-    def get_metadata(self):
-        pass
+    def get_metadata(self, filename):
+
+        
+        try:
+
+            if not self.nombre_valido(filename)
+            filepath = os.path.join(self.dir, filename)
+            
+            # Chequeo si el archivo existe en nuestro directorio
+            if not os.path.isfile(filepath):
+                raise FileNotFoundError
+            
+            # Leyendo para entender como funcion el os.path.join
+            # En la docu encontre: os.path.getsize(path) que te da el tamano directo 
+            # sin los otros metadatos, que te da el stat, y usa una sola función en vez de dos 
+            
+            #os.path.getsize(filepath) VER CUAL USAR 
+            stat_info = os.stat(filepath) 
+
+            resp = resp_formato(self, CODE_OK)
+            resp += str(stat_info.st_size)
+            self.s.send(resp.encode("ascii"))
+        
+        # Si el archivo no existe
+        except FileNotFoundError:
+            self.enviar_error(FILE_NOT_FOUND)
+
+        # Cualquier otro error que pueda ocurrir
+        except Exception:
+            self.enviar_error(INTERNAL_ERROR)
+                
 
     def get_slice(self, filename, offset, size):
         if int(offset) >= 0 and int(size) >= 0:
@@ -111,3 +140,20 @@ def resp_formato(self, code):
         self.connected = False
     # el f-string pasa todo a string y no necesitamos hacer str(code)
     return f"{code} {error_messages[code]}{EOL}"
+
+def enviar_error(self, code):
+    """
+    Envía un mensaje de error al cliente con el código dado.
+    """
+    resp = resp_formato(self, code)
+    self.s.send(resp.encode("ascii"))
+    return
+
+def nombre_valido(filename):
+    """
+    Verifica si el nombre del archivo contiene solo caracteres válidos.
+    """
+    for char in filename:
+        if char not in VALID_CHARS:
+            return False
+    return True
