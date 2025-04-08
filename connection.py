@@ -22,7 +22,6 @@ class Connection(object):
         self.connected = True
 
     def handle(self):
-        print("Entramos a handle")
         while self.connected:
             data = self.s.recv(4096).decode("ascii")
             self.buffer = ''
@@ -34,7 +33,7 @@ class Connection(object):
                     data = self.s.recv(4096).decode("ascii")
             self.buffer = self.buffer.split(EOL)[0]
             message = self.buffer.split()
-            print(message)
+            # print(message)
             match message[0]:
                 case "quit":
                     if (len(message)==1):
@@ -44,17 +43,20 @@ class Connection(object):
                         self.s.send(code.encode("ascii"))
                         
                 case "get_file_listing":
-                    self.get_file_listing()
+                    if (len(message)==1):
+                        self.get_file_listing()
+                    else:
+                        code = str(BAD_REQUEST) + EOL
+                        self.s.send(code.encode("ascii"))
                 case "get_metadata":
-                    self.get_metadata()
+                    self.get_metadata(message[1])
                 case "get_slice":
-                    self.get_slice()
+                    self.get_slice(message[1], message[2], message[3])
                 case _:
                     code = str(BAD_REQUEST) + EOL
                     self.s.send(code.encode("ascii"))
 
     def quit(self):
-        print("Conectado 4")
         # code = str(CODE_OK) + EOL Creo que aca tendria que decir "OK"
         # Segun el enunciado y en algunos ejemplos de comandos
         resp = resp_formato(self, CODE_OK)
@@ -62,14 +64,6 @@ class Connection(object):
         self.connected = False
         
     def get_file_listing(self):
-        """
-        Permite al cliente solicitar al servidor la lista de archivos disponibles en el directorio 
-        Respuesta: 
-            0 OK\r\n
-            archivo1.txt\r\n
-            archivo2.jpg\r\n
-            \r\n
-        """
         """
         Permite al cliente solicitar al servidor la lista de archivos disponibles en el directorio 
         Respuesta: 
@@ -109,11 +103,99 @@ class Connection(object):
         resp += EOL
         self.s.send(resp.encode("ascii"))
 
-    def get_metadata(self):
-        pass
+    def get_metadata(self, filename):
 
-    def get_slice(self):
-        pass
+        try:
+            if not nombre_valido(filename):
+                raise FileNotFoundError
+            
+            filepath = os.path.join(self.dir, filename)
+        
+            # Chequeo si el archivo existe en nuestro directorio
+            if not os.path.isfile(filepath):
+                raise FileNotFoundError
+            
+            # Leyendo para entender como funcion el os.path.join
+            # En la docu encontre: os.path.getsize(path) que te da el tamano directo 
+            # sin los otros metadatos, que te da el stat, y usa una sola función en vez de dos 
+            
+            #os.path.getsize(filepath) VER CUAL USAR 
+            stat_info = os.stat(filepath) 
+
+            resp = resp_formato(self, CODE_OK)
+            resp += str(stat_info.st_size) + EOL
+            self.s.send(resp.encode("ascii"))
+        
+        # Si el archivo no existe
+        except FileNotFoundError:
+            enviar_error(self, FILE_NOT_FOUND)
+
+        # Cualquier otro error que pueda ocurrir
+        except Exception:
+            enviar_error(self, INTERNAL_ERROR)
+                
+
+    def get_slice(self, filename, offset, size):
+        # Pasa los parametros a INT y verifica que sean no negativos,
+        # de lo contrario, devuelve el error INVALID_ARGUMENTS
+        try:
+            offset = int(offset)
+            size = int(size)
+            if offset < 0 or size < 0:
+                raise ValueError
+        except ValueError:
+            resp = resp_formato(self, INVALID_ARGUMENTS)
+            resp += EOL
+            self.s.send(resp.encode("ascii"))
+            return
+        
+        #os.path.join te junta los que necesites en la forma de path
+        #de tu sistema operativo, en Linux es con "/" pero en Windows es
+        #con "\"
+        filepath = os.path.join(self.dir, filename)
+
+        #Intenta abrir, si el archivo no existe, manda el error
+        try:
+            file = os.open(filepath, os.O_RDONLY)
+        except FileNotFoundError:
+            resp = resp_formato(self, FILE_NOT_FOUND)
+            resp += EOL
+            self.s.send(resp.encode("ascii"))
+            return
+        
+        #Si ocurrió otro error grave, tira error interno
+        except Exception:
+            resp = resp_formato(self, INTERNAL_ERROR)
+            resp += EOL
+            self.s.send(resp.encode("ascii"))
+            return
+        
+        try:
+            #Con esta función averiguo el tamaño en bytes del archivo
+            filesize = os.fstat(file).st_size
+
+            #Verifico no estar leyendo más de lo permitido
+            if offset >= filesize or offset + size >= filesize:
+                resp = resp_formato(self, BAD_OFFSET)
+                resp += EOL
+                self.s.send(resp.encode("ascii"))
+                return
+
+            #Llego todo OK
+            data = os.pread(file, size, offset)
+            encoded = b64encode(data).decode("ascii")
+            resp = resp_formato(self, CODE_OK)
+            resp += encoded + EOL
+            self.s.send(resp.encode("ascii"))
+
+        #Si falla con "excepcion sin salida"
+        except Exception:
+            resp = resp_formato(self, INTERNAL_ERROR)
+            resp += EOL
+            self.s.send(resp.encode("ascii"))
+
+        finally:
+            os.close(file)
 
 def resp_formato(self, code):
     """
@@ -123,11 +205,9 @@ def resp_formato(self, code):
     if not valid_status(code):
         # Ni idea que hacer si no es ninguno de nuestras lista de codigos de estado
         pass
-
     # Si el código representa un error fatal, se cierra la conexión
     if fatal_status(code):
         self.connected = False
-
     # el f-string pasa todo a string y no necesitamos hacer str(code)
     return f"{code} {error_messages[code]}{EOL}"
 
