@@ -53,6 +53,10 @@ class Server(object):
                 break
 
 def purge(hilos):
+    """
+    Elimina los hilos que ya no deben ser atendidos liberando
+    así los recursos utilizados
+    """
     while True:
         for i in range(len(hilos)):
             if not hilos[i][2].connected:

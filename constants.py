@@ -54,3 +54,18 @@ for i in range(ord('a'), ord('z') + 1):
     VALID_CHARS.add(chr(i))
 for i in range(ord('0'), ord('9') + 1):
     VALID_CHARS.add(chr(i))
+
+HELP_TEXT = (
+    "Available commands:\r\n"
+    "  quit\r\n"
+    "      Closes the connection.\r\n"
+    "  get_file_listing\r\n"
+    "      Lists the files in the server's directory.\r\n"
+    "  get_metadata <filename>\r\n"
+    "      Returns the size (in bytes) of the specified file.\r\n"
+    "  get_slice <filename> <offset> <size>\r\n"
+    "      Returns a slice of the file encoded in base64.\r\n"
+    "  help\r\n"
+    "      Shows this help message.\r\n"
+)
+
