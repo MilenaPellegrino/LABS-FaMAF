@@ -85,12 +85,12 @@ class Connection(object):
 
     def get_metadata(self, filename):
 
-        
         try:
-
-            if not self.nombre_valido(filename)
-            filepath = os.path.join(self.dir, filename)
+            if not nombre_valido(filename):
+                raise FileNotFoundError
             
+            filepath = os.path.join(self.dir, filename)
+        
             # Chequeo si el archivo existe en nuestro directorio
             if not os.path.isfile(filepath):
                 raise FileNotFoundError
