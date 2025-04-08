@@ -22,7 +22,6 @@ class Connection(object):
         self.connected = True
 
     def handle(self):
-        print("Entramos a handle")
         while self.connected:
             data = self.s.recv(4096).decode("ascii")
             self.buffer = ''
@@ -34,7 +33,7 @@ class Connection(object):
                     data = self.s.recv(4096).decode("ascii")
             self.buffer = self.buffer.split(EOL)[0]
             message = self.buffer.split()
-            print(message)
+            # print(message)
             match message[0]:
                 case "quit":
                     if (len(message)==1):
@@ -103,16 +102,16 @@ class Connection(object):
             stat_info = os.stat(filepath) 
 
             resp = resp_formato(self, CODE_OK)
-            resp += str(stat_info.st_size)
+            resp += str(stat_info.st_size) + EOL
             self.s.send(resp.encode("ascii"))
         
         # Si el archivo no existe
         except FileNotFoundError:
-            self.enviar_error(FILE_NOT_FOUND)
+            enviar_error(self, FILE_NOT_FOUND)
 
         # Cualquier otro error que pueda ocurrir
         except Exception:
-            self.enviar_error(INTERNAL_ERROR)
+            enviar_error(self, INTERNAL_ERROR)
                 
 
     def get_slice(self, filename, offset, size):
