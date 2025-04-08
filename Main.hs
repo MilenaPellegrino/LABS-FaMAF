@@ -4,7 +4,7 @@ import Graphics.Gloss.Interface.IO.Display
 import Graphics.UI.GLUT.Begin
 import Dibujo
 import Interp
-import qualified Basica.Ejemplo as E
+import qualified Basica.Escher as E
 import qualified Graphics.Gloss.Data.Point.Arithmetic as V
 
 --Funciones para rellenar el fondo de la imagen inicial
@@ -33,7 +33,7 @@ data Conf a = Conf {
 
 ej ancho alto = Conf {
                 basic = E.interpBas
-              , fig = E.ejemplo
+              , fig = E.escher 3 (E.Triangulo)
               , width = ancho
               , height = alto
               , r = id
@@ -44,7 +44,7 @@ moverCentro ancho alto p = translate (-ancho / 2) (-alto / 2) p
 
 ejCentro ancho alto = Conf {
                 basic = E.interpBas
-              , fig = E.ejemplo
+              , fig = E.escher 3 (E.Triangulo)
               , width = ancho
               , height = alto
               , r = moverCentro ancho alto
@@ -54,7 +54,7 @@ ejCentro ancho alto = Conf {
 -- pantalla la figura de la misma de acuerdo a la interpretación para
 -- las figuras básicas. Permitimos una computación para poder leer
 -- archivos, tomar argumentos, etc.
-inicial :: IO (Conf E.Basica) -> IO ()
+inicial :: IO (Conf E.Escher) -> IO ()
 inicial cf = cf >>= \cfg ->
     let ancho  = (width cfg, 0)
         alto  = (0, height cfg)
