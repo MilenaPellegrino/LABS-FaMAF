@@ -72,8 +72,29 @@ class Connection(object):
             archivo2.jpg\r\n
             \r\n
         """
-        # Obtenemos todos los archivos en el directorio
-        files = os.listdir(self.dir)
+
+        try:
+            # Verificamos que el directorio exista y sea válido
+            if not os.path.isdir(self.dir):
+                raise FileNotFoundError
+        
+            # Obtenemos todos los archivos en el directorio
+            files = os.listdir(self.dir)
+
+        # MANEJO DE LOS ERRORES 
+
+        # No se encontro el directorio o es invalido 
+        except FileNotFoundError:
+            self.enviar_error(BAD_REQUEST)
+            return
+        
+        # Cualquier otro error que ocurra
+        except Exception:
+            self.enviar_error(INTERNAL_ERROR)
+            return
+        
+        # Si todo anduvo bien, respondemos 
+
         # La primera linea tine que ser: 0 OK\r\n
         resp = resp_formato(self, CODE_OK)
         for file in files:
@@ -115,7 +136,6 @@ class Connection(object):
                 
 
     def get_slice(self, filename, offset, size):
-
         # Pasa los parametros a INT y verifica que sean no negativos,
         # de lo contrario, devuelve el error INVALID_ARGUMENTS
         try:
