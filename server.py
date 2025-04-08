@@ -9,7 +9,7 @@
 import optparse
 import socket
 import connection
-import os
+import threading
 from constants import *
 
 
@@ -34,31 +34,35 @@ class Server(object):
         Loop principal del servidor. Se acepta una conexión a la vez
         y se espera a que concluya antes de seguir.
         """
+        hilos = []
+        thr_purge = threading.Thread(target=purge, 
+                                     args=(hilos,), 
+                                     daemon=True)
+        thr_purge.start()
         while True:
-            self.s.listen(1) #Espero una conexion a la vez?
+            self.s.listen(N_THREADS)
             try:
-                socket_con = self.s.accept()[0]
-                pid = os.fork()
-                # Iniciar proceso hijo
-                if (pid == 0): # En caso de hijo
-                    con = connection.Connection(socket_con, self.dir)
-                    con.handle()
-                    socket_con.close()
-                    break
-                elif (pid > 0): # En caso de padre
-                    socket_con.close()
-                    # No espero al hijo pues no necesito su resultado'
-                    pass
-            except (OSError, EOFError):
-                #En caso de error con alguna funcion de os o llamada a CTRL+D
-                break
-            pass
+                sock = self.s.accept()[0]
+                conn = connection.Connection(sock, self.dir)
+                thr = threading.Thread(target=conn.handle, daemon=True)
+                thr.start()
+                hilos.append((thr,sock,conn))
 
-            
+            except (OSError, RuntimeError, KeyboardInterrupt):
+                #En caso de error con alguna funcion de os o de threadings
+                break
+
+def purge(hilos):
+    while True:
+        for i in range(len(hilos)):
+            if not hilos[i][2].connected:
+                hilos[i][0].join()
+                hilos[i][1].close()
+
+
 
 def main():
     """Parsea los argumentos y lanza el server"""
-
     parser = optparse.OptionParser()
     parser.add_option(
         "-p", "--port",
@@ -84,7 +88,6 @@ def main():
 
     server = Server(options.address, port, options.datadir)
     server.serve()
-
 
 if __name__ == '__main__':
     main()
