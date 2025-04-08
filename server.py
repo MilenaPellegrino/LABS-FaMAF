@@ -22,6 +22,7 @@ class Server(object):
                  directory=DEFAULT_DIR):
         print("Serving %s on %s:%s." % (directory, addr, port))
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
         self.s.bind((addr,port))
         self.dir = directory
         self.listening = False

@@ -52,7 +52,7 @@ class Connection(object):
                 case "get_metadata":
                     self.get_metadata()
                 case "get_slice":
-                    self.get_slice()
+                    self.get_slice(message[1], message[2], message[3])
                 case _:
                     code = str(BAD_REQUEST) + EOL
                     self.s.send(code.encode("ascii"))
@@ -86,8 +86,68 @@ class Connection(object):
     def get_metadata(self):
         pass
 
-    def get_slice(self):
-        pass
+    def get_slice(self, filename, offset, size):
+
+        # Pasa los parametros a INT y verifica que sean no negativos,
+        # de lo contrario, devuelve el error INVALID_ARGUMENTS
+        try:
+            offset = int(offset)
+            size = int(size)
+            if offset < 0 or size < 0:
+                raise ValueError
+        except ValueError:
+            resp = resp_formato(self, INVALID_ARGUMENTS)
+            resp += EOL
+            self.s.send(resp.encode("ascii"))
+            return
+        
+        #os.path.join te junta los que necesites en la forma de path
+        #de tu sistema operativo, en Linux es con "/" pero en Windows es
+        #con "\"
+        filepath = os.path.join(self.dir, filename)
+
+        #Intenta abrir, si el archivo no existe, manda el error
+        try:
+            file = os.open(filepath, os.O_RDONLY)
+        except FileNotFoundError:
+            resp = resp_formato(self, FILE_NOT_FOUND)
+            resp += EOL
+            self.s.send(resp.encode("ascii"))
+            return
+        
+        #Si ocurrió otro error grave, tira error interno
+        except Exception:
+            resp = resp_formato(self, INTERNAL_ERROR)
+            resp += EOL
+            self.s.send(resp.encode("ascii"))
+            return
+        
+        try:
+            #Con esta función averiguo el tamaño en bytes del archivo
+            filesize = os.fstat(file).st_size
+
+            #Verifico no estar leyendo más de lo permitido
+            if offset >= filesize or offset + size >= filesize:
+                resp = resp_formato(self, BAD_OFFSET)
+                resp += EOL
+                self.s.send(resp.encode("ascii"))
+                return
+
+            #Llego todo OK
+            data = os.pread(file, size, offset)
+            encoded = b64encode(data).decode("ascii")
+            resp = resp_formato(self, CODE_OK)
+            resp += encoded + EOL
+            self.s.send(resp.encode("ascii"))
+
+        #Si falla con "excepcion sin salida"
+        except Exception:
+            resp = resp_formato(self, INTERNAL_ERROR)
+            resp += EOL
+            self.s.send(resp.encode("ascii"))
+
+        finally:
+            os.close(file)
 
 def resp_formato(self, code):
     """
