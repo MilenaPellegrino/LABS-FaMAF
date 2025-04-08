@@ -32,35 +32,40 @@ class Connection(object):
                 else:
                     data = self.s.recv(4096).decode("ascii")
             self.buffer = self.buffer.split(EOL)[0]
-            message = self.buffer.split()
+            
+            message = self.buffer.split(' ')
             # print(message)
             match message[0]:
                 case "quit":
                     if (len(message)==1):
                         self.quit()
                     else:
-                        code = resp_formato(self, BAD_REQUEST)
+                        code = resp_formato(self, INVALID_ARGUMENTS)
                         self.s.send(code.encode("ascii"))
                 case "get_file_listing":
                     if (len(message)==1):
                         self.get_file_listing()
                     else:
-                        code = resp_formato(self, BAD_REQUEST)
+                        code = resp_formato(self, INVALID_ARGUMENTS)
                         self.s.send(code.encode("ascii"))
                 case "get_metadata":
                     if (len(message)==2):
-                        self.get_metadata()
+                        self.get_metadata(message[1])
                     else:
-                        code = resp_formato(self, BAD_REQUEST)
+                        code = resp_formato(self, INVALID_ARGUMENTS)
                         self.s.send(code.encode("ascii"))
                 case "get_slice":
                     if(len(message)==4): 
                         self.get_slice(message[1], message[2], message[3])
                     else:
-                        code = resp_formato(self, BAD_REQUEST)
+                        code = resp_formato(self, INVALID_ARGUMENTS)
                         self.s.send(code.encode("ascii"))
                 case _:
-                        code = resp_formato(self, BAD_REQUEST)
+                    if (len(message[0].split("\n")) > 1):
+                        code = resp_formato(self, BAD_EOL)
+                        self.s.send(code.encode("ascii"))
+                    else :
+                        code = resp_formato(self, INVALID_COMMAND)
                         self.s.send(code.encode("ascii"))
 
     def quit(self):
@@ -92,12 +97,12 @@ class Connection(object):
 
         # No se encontro el directorio o es invalido 
         except FileNotFoundError:
-            self.enviar_error(BAD_REQUEST)
+            enviar_error(self, BAD_REQUEST)
             return
         
         # Cualquier otro error que ocurra
         except Exception:
-            self.enviar_error(INTERNAL_ERROR)
+            enviar_error(self, INTERNAL_ERROR)
             return
         
         # Si todo anduvo bien, respondemos 
@@ -179,7 +184,7 @@ class Connection(object):
             filesize = os.fstat(file).st_size
 
             #Verifico no estar leyendo más de lo permitido
-            if offset >= filesize or offset + size >= filesize:
+            if offset >= filesize or offset + size > filesize:
                 resp = resp_formato(self, BAD_OFFSET)
                 self.s.send(resp.encode("ascii"))
                 return
