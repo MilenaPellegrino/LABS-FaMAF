@@ -39,22 +39,29 @@ class Connection(object):
                     if (len(message)==1):
                         self.quit()
                     else:
-                        code = str(BAD_REQUEST) + EOL
+                        code = resp_formato(self, BAD_REQUEST)
                         self.s.send(code.encode("ascii"))
-                        
                 case "get_file_listing":
                     if (len(message)==1):
                         self.get_file_listing()
                     else:
-                        code = str(BAD_REQUEST) + EOL
+                        code = resp_formato(self, BAD_REQUEST)
                         self.s.send(code.encode("ascii"))
                 case "get_metadata":
-                    self.get_metadata(message[1])
+                    if (len(message)==2):
+                        self.get_metadata()
+                    else:
+                        code = resp_formato(self, BAD_REQUEST)
+                        self.s.send(code.encode("ascii"))
                 case "get_slice":
-                    self.get_slice(message[1], message[2], message[3])
+                    if(len(message)==4): 
+                        self.get_slice(message[1], message[2], message[3])
+                    else:
+                        code = resp_formato(self, BAD_REQUEST)
+                        self.s.send(code.encode("ascii"))
                 case _:
-                    code = str(BAD_REQUEST) + EOL
-                    self.s.send(code.encode("ascii"))
+                        code = resp_formato(self, BAD_REQUEST)
+                        self.s.send(code.encode("ascii"))
 
     def quit(self):
         # code = str(CODE_OK) + EOL Creo que aca tendria que decir "OK"
@@ -145,7 +152,6 @@ class Connection(object):
                 raise ValueError
         except ValueError:
             resp = resp_formato(self, INVALID_ARGUMENTS)
-            resp += EOL
             self.s.send(resp.encode("ascii"))
             return
         
@@ -159,14 +165,12 @@ class Connection(object):
             file = os.open(filepath, os.O_RDONLY)
         except FileNotFoundError:
             resp = resp_formato(self, FILE_NOT_FOUND)
-            resp += EOL
             self.s.send(resp.encode("ascii"))
             return
         
         #Si ocurrió otro error grave, tira error interno
         except Exception:
             resp = resp_formato(self, INTERNAL_ERROR)
-            resp += EOL
             self.s.send(resp.encode("ascii"))
             return
         
@@ -177,7 +181,6 @@ class Connection(object):
             #Verifico no estar leyendo más de lo permitido
             if offset >= filesize or offset + size >= filesize:
                 resp = resp_formato(self, BAD_OFFSET)
-                resp += EOL
                 self.s.send(resp.encode("ascii"))
                 return
 
@@ -191,7 +194,6 @@ class Connection(object):
         #Si falla con "excepcion sin salida"
         except Exception:
             resp = resp_formato(self, INTERNAL_ERROR)
-            resp += EOL
             self.s.send(resp.encode("ascii"))
 
         finally:
@@ -202,10 +204,6 @@ def resp_formato(self, code):
     Devuelve la respuesta formateada según el código de estado.
     Formato de la respuesta: "<código> <mensaje de error>\r\n"
     """
-    if not valid_status(code):
-        # Ni idea que hacer si no es ninguno de nuestras lista de codigos de estado
-        pass
-    # Si el código representa un error fatal, se cierra la conexión
     if fatal_status(code):
         self.connected = False
     # el f-string pasa todo a string y no necesitamos hacer str(code)
