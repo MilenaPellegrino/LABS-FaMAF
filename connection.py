@@ -70,18 +70,43 @@ class Connection(object):
             archivo2.jpg\r\n
             \r\n
         """
-        # Obtenemos todos los archivos en el directorio
-        files = os.listdir(self.dir)
+        """
+        Permite al cliente solicitar al servidor la lista de archivos disponibles en el directorio 
+        Respuesta: 
+            0 OK\r\n
+            archivo1.txt\r\n
+            archivo2.jpg\r\n
+            \r\n
+        """
+
+        try:
+            # Verificamos que el directorio exista y sea válido
+            if not os.path.isdir(self.dir):
+                raise FileNotFoundError
+        
+            # Obtenemos todos los archivos en el directorio
+            files = os.listdir(self.dir)
+
+        # MANEJO DE LOS ERRORES 
+
+        # No se encontro el directorio o es invalido 
+        except FileNotFoundError:
+            self.enviar_error(BAD_REQUEST)
+            return
+        
+        # Cualquier otro error que ocurra
+        except Exception:
+            self.enviar_error(INTERNAL_ERROR)
+            return
+        
+        # Si todo anduvo bien, respondemos 
 
         # La primera linea tine que ser: 0 OK\r\n
         resp = resp_formato(self, CODE_OK)
-
         for file in files:
             resp += file + EOL
-
         # Linea vacia del final
         resp += EOL
-
         self.s.send(resp.encode("ascii"))
 
     def get_metadata(self):
@@ -105,3 +130,20 @@ def resp_formato(self, code):
 
     # el f-string pasa todo a string y no necesitamos hacer str(code)
     return f"{code} {error_messages[code]}{EOL}"
+
+def enviar_error(self, code):
+    """
+    Envía un mensaje de error al cliente con el código dado.
+    """
+    resp = resp_formato(self, code)
+    self.s.send(resp.encode("ascii"))
+    return
+
+def nombre_valido(filename):
+    """
+    Verifica si el nombre del archivo contiene solo caracteres válidos.
+    """
+    for char in filename:
+        if char not in VALID_CHARS:
+            return False
+    return True
