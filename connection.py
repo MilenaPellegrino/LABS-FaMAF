@@ -22,7 +22,6 @@ class Connection(object):
         self.connected = True
 
     def handle(self):
-        print("Entramos a handle")
         while self.connected:
             data = self.s.recv(4096).decode("ascii")
             self.buffer = ''
@@ -34,7 +33,7 @@ class Connection(object):
                     data = self.s.recv(4096).decode("ascii")
             self.buffer = self.buffer.split(EOL)[0]
             message = self.buffer.split()
-            print(message)
+            # print(message)
             match message[0]:
                 case "quit":
                     if (len(message)==1):
@@ -80,8 +79,29 @@ class Connection(object):
             archivo2.jpg\r\n
             \r\n
         """
-        # Obtenemos todos los archivos en el directorio
-        files = os.listdir(self.dir)
+
+        try:
+            # Verificamos que el directorio exista y sea válido
+            if not os.path.isdir(self.dir):
+                raise FileNotFoundError
+        
+            # Obtenemos todos los archivos en el directorio
+            files = os.listdir(self.dir)
+
+        # MANEJO DE LOS ERRORES 
+
+        # No se encontro el directorio o es invalido 
+        except FileNotFoundError:
+            self.enviar_error(BAD_REQUEST)
+            return
+        
+        # Cualquier otro error que ocurra
+        except Exception:
+            self.enviar_error(INTERNAL_ERROR)
+            return
+        
+        # Si todo anduvo bien, respondemos 
+
         # La primera linea tine que ser: 0 OK\r\n
         resp = resp_formato(self, CODE_OK)
         for file in files:
@@ -90,11 +110,39 @@ class Connection(object):
         resp += EOL
         self.s.send(resp.encode("ascii"))
 
-    def get_metadata(self):
-        pass
+    def get_metadata(self, filename):
+
+        try:
+            if not nombre_valido(filename):
+                raise FileNotFoundError
+            
+            filepath = os.path.join(self.dir, filename)
+        
+            # Chequeo si el archivo existe en nuestro directorio
+            if not os.path.isfile(filepath):
+                raise FileNotFoundError
+            
+            # Leyendo para entender como funcion el os.path.join
+            # En la docu encontre: os.path.getsize(path) que te da el tamano directo 
+            # sin los otros metadatos, que te da el stat, y usa una sola función en vez de dos 
+            
+            #os.path.getsize(filepath) VER CUAL USAR 
+            stat_info = os.stat(filepath) 
+
+            resp = resp_formato(self, CODE_OK)
+            resp += str(stat_info.st_size) + EOL
+            self.s.send(resp.encode("ascii"))
+        
+        # Si el archivo no existe
+        except FileNotFoundError:
+            enviar_error(self, FILE_NOT_FOUND)
+
+        # Cualquier otro error que pueda ocurrir
+        except Exception:
+            enviar_error(self, INTERNAL_ERROR)
+                
 
     def get_slice(self, filename, offset, size):
-
         # Pasa los parametros a INT y verifica que sean no negativos,
         # de lo contrario, devuelve el error INVALID_ARGUMENTS
         try:
@@ -158,4 +206,22 @@ def resp_formato(self, code):
     """
     if fatal_status(code):
         self.connected = False
+    # el f-string pasa todo a string y no necesitamos hacer str(code)
     return f"{code} {error_messages[code]}{EOL}"
+
+def enviar_error(self, code):
+    """
+    Envía un mensaje de error al cliente con el código dado.
+    """
+    resp = resp_formato(self, code)
+    self.s.send(resp.encode("ascii"))
+    return
+
+def nombre_valido(filename):
+    """
+    Verifica si el nombre del archivo contiene solo caracteres válidos.
+    """
+    for char in filename:
+        if char not in VALID_CHARS:
+            return False
+    return True
