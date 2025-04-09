@@ -13,11 +13,13 @@ import sys
 import time
 from base64 import b64decode
 from constants import *
+from typing import Optional, Tuple, List
+
 
 
 class Client(object):
 
-    def __init__(self, server=DEFAULT_ADDR, port=DEFAULT_PORT):
+    def __init__(self, server: str = DEFAULT_ADDR, port: int = DEFAULT_PORT) -> None:
         """
         Nuevo cliente, conectado al `server' solicitado en el `port' TCP
         indicado.
@@ -30,7 +32,7 @@ class Client(object):
         self.buffer = ''
         self.connected = True
 
-    def close(self):
+    def close(self) -> None:
         """
         Desconecta al cliente del server, mandando el mensaje apropiado
         antes de desconectar.
@@ -43,7 +45,7 @@ class Client(object):
         self.connected = False
         self.s.close()
 
-    def send(self, message, timeout=None):
+    def send(self, message: str, timeout: Optional[float] = None) -> None:
         """
         Envía el mensaje 'message' al server, seguido por el terminador de
         línea del protocolo.
@@ -61,7 +63,7 @@ class Client(object):
             assert bytes_sent > 0
             message = message[bytes_sent:]
 
-    def _recv(self, timeout=None):
+    def _recv(self, timeout: Optional[float]=None) -> None:
         """
         Recibe datos y acumula en el buffer interno.
 
@@ -75,7 +77,7 @@ class Client(object):
             logging.info("El server interrumpió la conexión.")
             self.connected = False
 
-    def read_line(self, timeout=None):
+    def read_line(self, timeout: float = None) -> str:
         """
         Espera datos hasta obtener una línea completa delimitada por el
         terminador del protocolo.
@@ -98,7 +100,7 @@ class Client(object):
             self.connected = False
             return ""
 
-    def read_response_line(self, timeout=None):
+    def read_response_line(self, timeout: Optional[float] = None) -> Tuple[Optional[int], Optional[str]]:
         """
         Espera y parsea una línea de respuesta de un comando.
 
@@ -117,7 +119,7 @@ class Client(object):
             logging.warning("Respuesta inválida: '%s'" % response)
         return result
 
-    def read_fragment(self, length):
+    def read_fragment(self, length: int) -> bytes:
         """
         Espera y lee un fragmento de un archivo.
 
@@ -132,7 +134,7 @@ class Client(object):
 
         return fragment
 
-    def file_lookup(self):
+    def file_lookup(self) -> List[str]:
         """
         Obtener el listado de archivos en el server. Devuelve una lista
         de strings.
@@ -152,7 +154,7 @@ class Client(object):
 
         return result
 
-    def get_metadata(self, filename):
+    def get_metadata(self, filename: str) -> Optional[int]:
         """
         Obtiene en el server el tamaño del archivo con el nombre dado.
         Devuelve None en caso de error.
@@ -163,7 +165,7 @@ class Client(object):
             size = int(self.read_line())
             return size
 
-    def get_slice(self, filename, start, length):
+    def get_slice(self, filename: str, start: int, length: int) -> None:
         """
         Obtiene un trozo de un archivo en el server.
 
@@ -181,7 +183,7 @@ class Client(object):
             logging.warning("El servidor indico un error al leer de %s."
                             % filename)
 
-    def retrieve(self, filename):
+    def retrieve(self, filename: str) -> None:
         """
         Obtiene un archivo completo desde el servidor.
         """
@@ -196,7 +198,7 @@ class Client(object):
                             % (filename, self.status))
 
 
-def main():
+def main() -> None:
     """
     Interfaz interactiva simple para el cliente: permite elegir un archivo
     y bajarlo.
