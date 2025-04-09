@@ -11,6 +11,7 @@ import socket
 import connection
 import threading
 from constants import *
+from typing import List, Tuple
 
 
 class Server(object):
@@ -19,8 +20,8 @@ class Server(object):
     especificados donde se reciben nuevas conexiones de clientes.
     """
 
-    def __init__(self, addr=DEFAULT_ADDR, port=DEFAULT_PORT,
-                 directory=DEFAULT_DIR):
+    def __init__(self, addr: str = DEFAULT_ADDR, port: int = DEFAULT_PORT,
+                 directory: str = DEFAULT_DIR) -> None:
         print("Serving %s on %s:%s." % (directory, addr, port))
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
@@ -29,7 +30,7 @@ class Server(object):
         # FALTA: Crear socket del servidor, configurarlo, asignarlo
         # a una dirección y puerto, etc.
 
-    def serve(self):
+    def serve(self) -> None:
         """
         Loop principal del servidor. Se acepta una conexión a la vez
         y se espera a que concluya antes de seguir.
@@ -52,7 +53,7 @@ class Server(object):
                 #En caso de error con alguna funcion de os o de threadings
                 break
 
-def purge(hilos):
+def purge(hilos: List[tuple[threading.Thread, socket.socket, connection. Connection]]) -> None:
     """
     Elimina los hilos que ya no deben ser atendidos liberando
     así los recursos utilizados
@@ -65,7 +66,7 @@ def purge(hilos):
 
 
 
-def main():
+def main() -> None:
     """Parsea los argumentos y lanza el server"""
     parser = optparse.OptionParser()
     parser.add_option(

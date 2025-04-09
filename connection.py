@@ -15,13 +15,13 @@ class Connection(object):
     que termina la conexión.
     """
 
-    def __init__(self, socket, directory):
+    def __init__(self, socket: socket.socket, directory: str) -> None:
         self.s = socket
         self.dir = directory
         self.buffer = ''
         self.connected = True
 
-    def handle(self):
+    def handle(self) -> None:
         """
         Mientras la conexión esté activa, escucha las
         peticiones y las maneja de acuerdo a los
@@ -79,7 +79,7 @@ class Connection(object):
                         code = resp_formato(self, INVALID_COMMAND)
                         self.s.send(code.encode("ascii"))
 
-    def quit(self):
+    def quit(self) -> None:
         """
         Comando para cerrar la conexión con el cliente
         """
@@ -87,7 +87,7 @@ class Connection(object):
         self.s.send(resp.encode("ascii"))
         self.connected = False
         
-    def get_file_listing(self):
+    def get_file_listing(self) -> None:
         """
         Permite al cliente solicitar al servidor la lista de archivos disponibles en el directorio 
         Respuesta: 
@@ -127,7 +127,7 @@ class Connection(object):
         resp += EOL
         self.s.send(resp.encode("ascii"))
 
-    def get_metadata(self, filename):
+    def get_metadata(self, filename: str) -> None:
         """
         Permite al cliente solicitar el tamaño del archivo filename
         """
@@ -161,10 +161,11 @@ class Connection(object):
             enviar_error(self, INTERNAL_ERROR)
                 
 
-    def get_slice(self, filename, offset, size):
+    def get_slice(self, filename: str, offset: str, size: str) -> None:
         """Permite solicitar al cliente el contenido
         (codificado en base64) del archivo filename desde offset hasta size
         """
+        #Chequeo que los argumentos sean no negativos
         try:
             offset = int(offset)
             size = int(size)
@@ -177,6 +178,7 @@ class Connection(object):
         
         filepath = os.path.join(self.dir, filename)
 
+        #Abrimos el archivo
         try:
             file = os.open(filepath, os.O_RDONLY)
         except FileNotFoundError:
@@ -191,12 +193,12 @@ class Connection(object):
         
         try:
             filesize = os.fstat(file).st_size
-
+            #Chequeamos que no se intente leer más allá de lo razonable
             if offset >= filesize or offset + size > filesize:
                 resp = resp_formato(self, BAD_OFFSET)
                 self.s.send(resp.encode("ascii"))
                 return
-
+            #Leemos loo datos necesarios, lo encodeamos y formateamos
             data = os.pread(file, size, offset)
             encoded = b64encode(data).decode("ascii")
             resp = resp_formato(self, CODE_OK)
@@ -210,7 +212,7 @@ class Connection(object):
         finally:
             os.close(file)
 
-    def help(self):
+    def help(self) -> None:
         """
         Printea en pantalla los comandos que puedes utilizar
         """
@@ -219,7 +221,7 @@ class Connection(object):
         resp += EOL
         self.s.send(resp.encode("ascii"))
 
-def resp_formato(self, code):
+def resp_formato(self: Connection, code: int) -> str:
     """
     Devuelve la respuesta formateada según el código de estado.
     Formato de la respuesta: "<código> <mensaje de error>\r\n"
@@ -229,7 +231,7 @@ def resp_formato(self, code):
     # el f-string pasa todo a string y no necesitamos hacer str(code)
     return f"{code} {error_messages[code]}{EOL}"
 
-def enviar_error(self, code):
+def enviar_error(self: Connection, code: int) -> None:
     """
     Envía un mensaje de error al cliente con el código dado.
     """
@@ -237,7 +239,7 @@ def enviar_error(self, code):
     self.s.send(resp.encode("ascii"))
     return
 
-def nombre_valido(filename):
+def nombre_valido(filename: str) -> bool:
     """
     Verifica si el nombre del archivo contiene solo caracteres válidos.
     """
