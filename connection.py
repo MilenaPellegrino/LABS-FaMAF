@@ -139,17 +139,11 @@ class Connection(object):
         
             # Chequeo si el archivo existe en nuestro directorio
             if not os.path.isfile(filepath):
-                raise FileNotFoundError
+                raise FileNotFoundError 
             
-            # Leyendo para entender como funcion el os.path.join
-            # En la docu encontre: os.path.getsize(path) que te da el tamano directo 
-            # sin los otros metadatos, que te da el stat, y usa una sola función en vez de dos 
-            
-            #os.path.getsize(filepath) VER CUAL USAR 
-            stat_info = os.stat(filepath) 
-
+            data = os.path.getsize(filepath) 
             resp = resp_formato(self, CODE_OK)
-            resp += str(stat_info.st_size) + EOL
+            resp += str(data) + EOL
             self.s.send(resp.encode("ascii"))
         
         # Si el archivo no existe
