@@ -9,7 +9,9 @@
 import optparse
 import socket
 import connection
+import threading
 from constants import *
+from typing import List, Tuple
 
 
 class Server(object):
@@ -18,39 +20,54 @@ class Server(object):
     especificados donde se reciben nuevas conexiones de clientes.
     """
 
-    def __init__(self, addr=DEFAULT_ADDR, port=DEFAULT_PORT,
-                 directory=DEFAULT_DIR):
+    def __init__(self, addr: str = DEFAULT_ADDR, port: int = DEFAULT_PORT,
+                 directory: str = DEFAULT_DIR) -> None:
         print("Serving %s on %s:%s." % (directory, addr, port))
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
         self.s.bind((addr,port))
         self.dir = directory
-        self.listening = False
-        self.connected = False
-        self.buffer = ' '
         # FALTA: Crear socket del servidor, configurarlo, asignarlo
         # a una dirección y puerto, etc.
 
-    def serve(self):
+    def serve(self) -> None:
         """
         Loop principal del servidor. Se acepta una conexión a la vez
         y se espera a que concluya antes de seguir.
         """
+        hilos = []
+        thr_purge = threading.Thread(target=purge, 
+                                     args=(hilos,), 
+                                     daemon=True)
+        thr_purge.start()
         while True:
-            self.listening = True
-            self.s.listen(1)
-            print("Buennasss")
-            con = self.s.accept()
-            con2 = connection.Connection(con[0], self.dir)
-            con2.handle()
-            con[0].close()
-            pass
-            # FALTA: Aceptar una conexión al server, crear una
-            # Connection para la conexión y atenderla hasta que termine.
+            self.s.listen(N_THREADS)
+            try:
+                sock = self.s.accept()[0]
+                conn = connection.Connection(sock, self.dir)
+                thr = threading.Thread(target=conn.handle, daemon=True)
+                thr.start()
+                hilos.append((thr,sock,conn))
+
+            except (OSError, RuntimeError, KeyboardInterrupt):
+                #En caso de error con alguna funcion de os o de threadings
+                break
+
+def purge(hilos: List[tuple[threading.Thread, socket.socket, connection. Connection]]) -> None:
+    """
+    Elimina los hilos que ya no deben ser atendidos liberando
+    así los recursos utilizados
+    """
+    while True:
+        for i in range(len(hilos)):
+            if not hilos[i][2].connected:
+                hilos[i][0].join()
+                hilos[i][1].close()
 
 
-def main():
+
+def main() -> None:
     """Parsea los argumentos y lanza el server"""
-
     parser = optparse.OptionParser()
     parser.add_option(
         "-p", "--port",
@@ -76,7 +93,6 @@ def main():
 
     server = Server(options.address, port, options.datadir)
     server.serve()
-
 
 if __name__ == '__main__':
     main()
