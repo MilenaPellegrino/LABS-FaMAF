@@ -15,13 +15,18 @@ class Connection(object):
     que termina la conexión.
     """
 
-    def __init__(self, socket, directory):
+    def __init__(self, socket: socket.socket, directory: str) -> None:
         self.s = socket
         self.dir = directory
         self.buffer = ''
         self.connected = True
 
-    def handle(self):
+    def handle(self) -> None:
+        """
+        Mientras la conexión esté activa, escucha las
+        peticiones y las maneja de acuerdo a los
+        comandos implementados
+        """
         while self.connected:
             data = self.s.recv(4096).decode("ascii")
             self.buffer = ''
@@ -60,6 +65,12 @@ class Connection(object):
                     else:
                         code = resp_formato(self, INVALID_ARGUMENTS)
                         self.s.send(code.encode("ascii"))
+                case "help":
+                    if(len(message)==1):
+                        self.help()
+                    else:
+                        code = resp_formato(self, INVALID_ARGUMENTS)
+                        self.s.send(code.encode("ascii"))
                 case _:
                     if (len(message[0].split("\n")) > 1):
                         code = resp_formato(self, BAD_EOL)
@@ -68,14 +79,15 @@ class Connection(object):
                         code = resp_formato(self, INVALID_COMMAND)
                         self.s.send(code.encode("ascii"))
 
-    def quit(self):
-        # code = str(CODE_OK) + EOL Creo que aca tendria que decir "OK"
-        # Segun el enunciado y en algunos ejemplos de comandos
+    def quit(self) -> None:
+        """
+        Comando para cerrar la conexión con el cliente
+        """
         resp = resp_formato(self, CODE_OK)
         self.s.send(resp.encode("ascii"))
         self.connected = False
         
-    def get_file_listing(self):
+    def get_file_listing(self) -> None:
         """
         Permite al cliente solicitar al servidor la lista de archivos disponibles en el directorio 
         Respuesta: 
@@ -115,8 +127,10 @@ class Connection(object):
         resp += EOL
         self.s.send(resp.encode("ascii"))
 
-    def get_metadata(self, filename):
-
+    def get_metadata(self, filename: str) -> None:
+        """
+        Permite al cliente solicitar el tamaño del archivo filename
+        """
         try:
             if not nombre_valido(filename):
                 raise FileNotFoundError
@@ -125,17 +139,11 @@ class Connection(object):
         
             # Chequeo si el archivo existe en nuestro directorio
             if not os.path.isfile(filepath):
-                raise FileNotFoundError
+                raise FileNotFoundError 
             
-            # Leyendo para entender como funcion el os.path.join
-            # En la docu encontre: os.path.getsize(path) que te da el tamano directo 
-            # sin los otros metadatos, que te da el stat, y usa una sola función en vez de dos 
-            
-            #os.path.getsize(filepath) VER CUAL USAR 
-            stat_info = os.stat(filepath) 
-
+            data = os.path.getsize(filepath) 
             resp = resp_formato(self, CODE_OK)
-            resp += str(stat_info.st_size) + EOL
+            resp += str(data) + EOL
             self.s.send(resp.encode("ascii"))
         
         # Si el archivo no existe
@@ -147,9 +155,11 @@ class Connection(object):
             enviar_error(self, INTERNAL_ERROR)
                 
 
-    def get_slice(self, filename, offset, size):
-        # Pasa los parametros a INT y verifica que sean no negativos,
-        # de lo contrario, devuelve el error INVALID_ARGUMENTS
+    def get_slice(self, filename: str, offset: str, size: str) -> None:
+        """Permite solicitar al cliente el contenido
+        (codificado en base64) del archivo filename desde offset hasta size
+        """
+        #Chequeo que los argumentos sean no negativos
         try:
             offset = int(offset)
             size = int(size)
@@ -160,12 +170,9 @@ class Connection(object):
             self.s.send(resp.encode("ascii"))
             return
         
-        #os.path.join te junta los que necesites en la forma de path
-        #de tu sistema operativo, en Linux es con "/" pero en Windows es
-        #con "\"
         filepath = os.path.join(self.dir, filename)
 
-        #Intenta abrir, si el archivo no existe, manda el error
+        #Abrimos el archivo
         try:
             file = os.open(filepath, os.O_RDONLY)
         except FileNotFoundError:
@@ -173,30 +180,25 @@ class Connection(object):
             self.s.send(resp.encode("ascii"))
             return
         
-        #Si ocurrió otro error grave, tira error interno
         except Exception:
             resp = resp_formato(self, INTERNAL_ERROR)
             self.s.send(resp.encode("ascii"))
             return
         
         try:
-            #Con esta función averiguo el tamaño en bytes del archivo
             filesize = os.fstat(file).st_size
-
-            #Verifico no estar leyendo más de lo permitido
+            #Chequeamos que no se intente leer más allá de lo razonable
             if offset >= filesize or offset + size > filesize:
                 resp = resp_formato(self, BAD_OFFSET)
                 self.s.send(resp.encode("ascii"))
                 return
-
-            #Llego todo OK
+            #Leemos loo datos necesarios, lo encodeamos y formateamos
             data = os.pread(file, size, offset)
             encoded = b64encode(data).decode("ascii")
             resp = resp_formato(self, CODE_OK)
             resp += encoded + EOL
             self.s.send(resp.encode("ascii"))
 
-        #Si falla con "excepcion sin salida"
         except Exception:
             resp = resp_formato(self, INTERNAL_ERROR)
             self.s.send(resp.encode("ascii"))
@@ -204,7 +206,16 @@ class Connection(object):
         finally:
             os.close(file)
 
-def resp_formato(self, code):
+    def help(self) -> None:
+        """
+        Printea en pantalla los comandos que puedes utilizar
+        """
+        resp = resp_formato(self, CODE_OK)
+        resp += HELP_TEXT
+        resp += EOL
+        self.s.send(resp.encode("ascii"))
+
+def resp_formato(self: Connection, code: int) -> str:
     """
     Devuelve la respuesta formateada según el código de estado.
     Formato de la respuesta: "<código> <mensaje de error>\r\n"
@@ -214,7 +225,7 @@ def resp_formato(self, code):
     # el f-string pasa todo a string y no necesitamos hacer str(code)
     return f"{code} {error_messages[code]}{EOL}"
 
-def enviar_error(self, code):
+def enviar_error(self: Connection, code: int) -> None:
     """
     Envía un mensaje de error al cliente con el código dado.
     """
@@ -222,7 +233,7 @@ def enviar_error(self, code):
     self.s.send(resp.encode("ascii"))
     return
 
-def nombre_valido(filename):
+def nombre_valido(filename: str) -> bool:
     """
     Verifica si el nombre del archivo contiene solo caracteres válidos.
     """
