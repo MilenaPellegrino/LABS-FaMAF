@@ -8,8 +8,8 @@
 4. Pellegrino Milena
 
 ### Enlaces de entrega
-1. [Diapositivas utilizadas]()
-2. [Video de presentaciÃ³n (en drive)]()
+1. [Diapositivas utilizadas](https://www.canva.com/design/DAGkJh1VBV8/P_r_OMeN25J4-WbowdJsjA/edit?utm_content=DAGkJh1VBV8&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
+2. [Video de presentación (en drive)](https://drive.google.com/drive/folders/1mKSFKjGyE0sDVkQimmBLK7Ep0nxj1Yh2?usp=sharing)
 
 ### Preguntas
 1. ¿Qué estrategias existen para poder implementar este mismo servidor pero con capacidad de atender múltiples clientes simultáneamente? Investigue y responda brevemente qué cambios serían necesarios en el diseño del código.
