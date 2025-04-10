@@ -20,4 +20,5 @@ Existe varias formas para implementar el servidor que soporte multiples clientes
 - async -> Usando el modulo adyncio, lo que hace es hacer bucles de los eventos priorizando las operaciones que ya están listas, para asi poder manejar las múltiples conexiones sin hilos adicionales
 
 2. Pruebe ejecutar el servidor en una máquina del laboratorio, mientras utiliza el cliente desde otra, hacia la ip de la máquina servidor. ¿Qué diferencia hay si se corre el servidor desde la IP “localhost”, “127.0.0.1” o la ip “0.0.0.0”?
-
+Si usamos localhost o 127.0.0.1 solo es accesible desde la misma máquina, si corremos nuestro servidor utilizando esto, desde otra máquina diferente no vamos a poder conectarnos, ya que solo escucha conexiones locales. 
+En cambio si usamos 0.0.0.0 o la IP de la máquina nos permite conectarnos desde otras máquinas al server. 
