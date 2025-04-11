@@ -27,66 +27,131 @@ class Connection(object):
         peticiones y las maneja de acuerdo a los
         comandos implementados
         """
+        # El ciclo se mantiene hasta cambiar el booleano
         while self.connected:
-            data = self.s.recv(4096).decode("ascii")
-            self.buffer = ''
-            while data:
-                self.buffer += data
-                if EOL in self.buffer:
-                    data = None 
-                else:
-                    data = self.s.recv(4096).decode("ascii")
-            self.buffer = self.buffer.split(EOL)[0]
+
+            # Intenta recibir los datos y almacenarlos en self.buffer
+            try:
+                data = self.s.recv(4096).decode("ascii")
+                self.buffer = ''
+                while data:
+                    self.buffer += data
+
+                    # Si encuentra el EOL deja de recibir datos
+                    if EOL in self.buffer:
+                        data = None 
+                    else:
+                        data = self.s.recv(4096).decode("ascii")
+
+            # Si recibe datos que no puede decodificar se desconecta
+            except (UnicodeDecodeError):
+                self.connected = False
+                break
             
+            # Quita el EOL
+            self.buffer = self.buffer.split(EOL)[0]
+
+            # Se fija si hay algun \n innecesario
+            # Manda error y
+            # rearma el mensaje sin el \n
+            test = self.buffer.split("\n")
+            if (len(test)>1):
+                enviar_error(self, BAD_EOL)
+                self.buffer = ''
+                for i in range(len(test)):
+                    self.buffer += test[i]
+            
+            # Guarda en message el arreglo con el comando
             message = self.buffer.split(' ')
-            # print(message)
-            match message[0]:
-                case "quit":
-                    if (len(message)==1):
-                        self.quit()
-                    else:
-                        code = resp_formato(self, INVALID_ARGUMENTS)
-                        self.s.send(code.encode("ascii"))
-                case "get_file_listing":
-                    if (len(message)==1):
-                        self.get_file_listing()
-                    else:
-                        code = resp_formato(self, INVALID_ARGUMENTS)
-                        self.s.send(code.encode("ascii"))
-                case "get_metadata":
-                    if (len(message)==2):
-                        self.get_metadata(message[1])
-                    else:
-                        code = resp_formato(self, INVALID_ARGUMENTS)
-                        self.s.send(code.encode("ascii"))
-                case "get_slice":
-                    if(len(message)==4): 
-                        self.get_slice(message[1], message[2], message[3])
-                    else:
-                        code = resp_formato(self, INVALID_ARGUMENTS)
-                        self.s.send(code.encode("ascii"))
-                case "help":
-                    if(len(message)==1):
-                        self.help()
-                    else:
-                        code = resp_formato(self, INVALID_ARGUMENTS)
-                        self.s.send(code.encode("ascii"))
-                case _:
-                    if (len(message[0].split("\n")) > 1):
-                        code = resp_formato(self, BAD_EOL)
-                        self.s.send(code.encode("ascii"))
-                    else :
-                        code = resp_formato(self, INVALID_COMMAND)
-                        self.s.send(code.encode("ascii"))
+
+            # Intenta matchear el comando y actuar acorde
+            try:
+                match message[0]:
+
+                    case "quit":
+                        # Se fija que el comando quit no
+                        # tenga argumentos invalidos
+                        # 
+                        # Si no los tiene ejecuta el comando
+                        if (len(message)==1):
+                            self.quit()
+
+                        # Si los tiene envia codigo de error
+                        else:
+                            enviar_error(self, INVALID_ARGUMENTS)
+
+                    case "get_file_listing":
+                        # Se fija que el comando get_file_listing no
+                        # tenga argumentos invalidos
+                        # 
+                        # Si no los tiene ejecuta el comando
+                        if (len(message)==1):
+                            self.get_file_listing()
+
+                        # Si los tiene envia codigo de error
+                        else:
+                            enviar_error(self, INVALID_ARGUMENTS)
+
+                    case "get_metadata":
+                        # Se fija que el comando get_metadata no
+                        # tenga argumentos invalidos
+                        # 
+                        # Si no los tiene ejecuta el comando
+                        if (len(message)==2):
+                            self.get_metadata(message[1])
+
+                        # Si los tiene envia codigo de error
+                        else:
+                            enviar_error(self, INVALID_ARGUMENTS)
+
+                    case "get_slice":
+                        # Se fija que el comando get_slice no
+                        # tenga argumentos invalidos
+                        # 
+                        # Si no los tiene ejecuta el comando
+                        if(len(message)==4): 
+                            self.get_slice(message[1], message[2], message[3])
+
+                        # Si los tiene envia codigo de error
+                        else:
+                            enviar_error(self, INVALID_ARGUMENTS)
+
+                    case "help":
+                        # Se fija que el comando help no
+                        # tenga argumentos invalidos
+                        # 
+                        # Si no los tiene ejecuta el comando
+                        if(len(message)==1):
+                            self.help()
+
+                        # Si los tiene envia codigo de error
+                        else:
+                            enviar_error(self, INVALID_ARGUMENTS)
+
+                    case _:
+                        # Si lo recibido no es un comando
+                        # devuelve codigo de error
+                        enviar_error(self, INVALID_COMMAND)
+
+            # Si enviando datos algun Pipe se daño
+            # significa que la conexion se termino externamente
+            # cierra la conexion
+            except (BrokenPipeError):
+                self.connected = False
+
 
     def quit(self) -> None:
         """
         Comando para cerrar la conexión con el cliente
         """
+        # Envia codigo de exito
         resp = resp_formato(self, CODE_OK)
         self.s.send(resp.encode("ascii"))
+
+        # Cierra la conexion
         self.connected = False
-        
+
+
     def get_file_listing(self) -> None:
         """
         Permite al cliente solicitar al servidor la lista de archivos disponibles en el directorio 
@@ -132,16 +197,21 @@ class Connection(object):
         Permite al cliente solicitar el tamaño del archivo filename
         """
         try:
+            # Revisa que el archivo tenga caracteres validos
             if not nombre_valido(filename):
                 raise FileNotFoundError
             
+            # Guarda la direccion del archivo
             filepath = os.path.join(self.dir, filename)
         
             # Chequeo si el archivo existe en nuestro directorio
             if not os.path.isfile(filepath):
                 raise FileNotFoundError 
             
+            # Guarda en data el tamaño del archivo
             data = os.path.getsize(filepath) 
+
+            # Devuelvo codigo de exito + contenido del mensaje
             resp = resp_formato(self, CODE_OK)
             resp += str(data) + EOL
             self.s.send(resp.encode("ascii"))
@@ -165,46 +235,58 @@ class Connection(object):
             size = int(size)
             if offset < 0 or size < 0:
                 raise ValueError
+
+        # Si son negativos envio codigo de error
+        # y vuelvo a handle
         except ValueError:
-            resp = resp_formato(self, INVALID_ARGUMENTS)
-            self.s.send(resp.encode("ascii"))
+            enviar_error(self, INVALID_ARGUMENTS)
             return
         
+        # Obtengo la direccion del archivo
         filepath = os.path.join(self.dir, filename)
 
         #Abrimos el archivo
         try:
             file = os.open(filepath, os.O_RDONLY)
+
+        # Si no se encontro devuelvo codigo de error
+        # y vuelvo a handle
         except FileNotFoundError:
-            resp = resp_formato(self, FILE_NOT_FOUND)
-            self.s.send(resp.encode("ascii"))
+            enviar_error(self, FILE_NOT_FOUND)
             return
-        
+
+        # Si ocurre cualquier otro error, codigo de error
+        # y vuelvo a handle
         except Exception:
-            resp = resp_formato(self, INTERNAL_ERROR)
-            self.s.send(resp.encode("ascii"))
+            enviar_error(self, INTERNAL_ERROR)
             return
         
+        # Se intenta leer el archivo
         try:
+            # Se obtiene el tamaño del archivo
             filesize = os.fstat(file).st_size
+
             #Chequeamos que no se intente leer más allá de lo razonable
             if offset >= filesize or offset + size > filesize:
-                resp = resp_formato(self, BAD_OFFSET)
-                self.s.send(resp.encode("ascii"))
+                enviar_error(self, BAD_OFFSET)
                 return
-            #Leemos loo datos necesarios, lo encodeamos y formateamos
+            
+            #Leemos los datos solicitados, lo encodeamos y formateamos
             data = os.pread(file, size, offset)
             encoded = b64encode(data).decode("ascii")
             resp = resp_formato(self, CODE_OK)
             resp += encoded + EOL
             self.s.send(resp.encode("ascii"))
-
+        
+        # Si no se pudo leer el archivo
+        # devuelve error
         except Exception:
-            resp = resp_formato(self, INTERNAL_ERROR)
-            self.s.send(resp.encode("ascii"))
+            enviar_error(self, INTERNAL_ERROR)
 
+        # Cierra el archivo
         finally:
             os.close(file)
+
 
     def help(self) -> None:
         """
@@ -220,8 +302,11 @@ def resp_formato(self: Connection, code: int) -> str:
     Devuelve la respuesta formateada según el código de estado.
     Formato de la respuesta: "<código> <mensaje de error>\r\n"
     """
+    # Chequea si el codigo de estado es fatal
+    # y cierra la conexion
     if fatal_status(code):
         self.connected = False
+
     # el f-string pasa todo a string y no necesitamos hacer str(code)
     return f"{code} {error_messages[code]}{EOL}"
 
@@ -229,6 +314,7 @@ def enviar_error(self: Connection, code: int) -> None:
     """
     Envía un mensaje de error al cliente con el código dado.
     """
+
     resp = resp_formato(self, code)
     self.s.send(resp.encode("ascii"))
     return
