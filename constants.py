@@ -12,7 +12,7 @@ DEFAULT_PORT = 19500
 
 EOL = '\r\n'
 
-N_THREADS = 1000
+N_THREADS = 1000        # Numero de conexiones a esperar
 
 CODE_OK = 0
 BAD_EOL = 100

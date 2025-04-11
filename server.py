@@ -35,22 +35,37 @@ class Server(object):
         Loop principal del servidor. Se acepta una conexión a la vez
         y se espera a que concluya antes de seguir.
         """
+        # Se crea lista que almacenara hilos
         hilos = []
+
+        # Se crea e inicia hilo encargado de cerrar conexiones
         thr_purge = threading.Thread(target=purge, 
                                      args=(hilos,), 
                                      daemon=True)
         thr_purge.start()
+        
+        # Configuacion para escuchar solicitud de conexion
+        self.s.listen(N_THREADS)
+
         while True:
-            self.s.listen(N_THREADS)
+            
+            # Se intentan iniciar nuevos hilos para manejar solicitudes
             try:
+                # Creacion del socket, conexion e hilo.
                 sock = self.s.accept()[0]
                 conn = connection.Connection(sock, self.dir)
                 thr = threading.Thread(target=conn.handle, daemon=True)
                 thr.start()
+
+                # Se almacena hilo creado en hilos para su 
+                # posterior cierre
                 hilos.append((thr,sock,conn))
 
-            except (OSError, RuntimeError, KeyboardInterrupt):
-                #En caso de error con alguna funcion de os o de threadings
+            # Si ocurre algun error cierra el servidor 
+            except (ConnectionError, TimeoutError, 
+                    RuntimeError, MemoryError, 
+                    Exception, KeyboardInterrupt):
+
                 break
 
 def purge(hilos: List[tuple[threading.Thread, socket.socket, connection. Connection]]) -> None:
@@ -58,11 +73,14 @@ def purge(hilos: List[tuple[threading.Thread, socket.socket, connection. Connect
     Elimina los hilos que ya no deben ser atendidos liberando
     así los recursos utilizados
     """
+    # Se ejecuta hasta cerrar el server
     while True:
-        for i in range(len(hilos)):
-            if not hilos[i][2].connected:
-                hilos[i][0].join()
-                hilos[i][1].close()
+        # Ve la lista de hilos en funcionamiento
+        for h in hilos:
+            # Si acabo su ejecucion cierra el hilo y el socket
+            if not h[2].connected:
+                h[0].join()
+                h[1].close()
 
 
 
