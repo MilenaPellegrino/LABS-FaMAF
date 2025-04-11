@@ -16,10 +16,11 @@ from constants import *
 from typing import Optional, Tuple, List
 
 
-
 class Client(object):
 
-    def __init__(self, server: str = DEFAULT_ADDR, port: int = DEFAULT_PORT) -> None:
+    def __init__(self,
+                 server: str = DEFAULT_ADDR,
+                 port: int = DEFAULT_PORT) -> None:
         """
         Nuevo cliente, conectado al `server' solicitado en el `port' TCP
         indicado.
@@ -85,7 +86,7 @@ class Client(object):
         Devuelve la línea, eliminando el terminaodr y los espacios en blanco
         al principio y al final.
         """
-        while not EOL in self.buffer and self.connected:
+        while EOL not in self.buffer and self.connected:
             if timeout is not None:
                 t1 = time.process_time()
             self._recv(timeout)
@@ -100,7 +101,10 @@ class Client(object):
             self.connected = False
             return ""
 
-    def read_response_line(self, timeout: Optional[float] = None) -> Tuple[Optional[int], Optional[str]]:
+    def read_response_line(self,
+                           timeout: Optional[float] = None) -> Tuple[
+                                   Optional[int],
+                                   Optional[str]]:
         """
         Espera y parsea una línea de respuesta de un comando.
 
@@ -212,9 +216,11 @@ def main() -> None:
     # Parsear argumentos
     parser = optparse.OptionParser(usage="%prog [options] server")
     parser.add_option("-p", "--port",
-                      help="Numero de puerto TCP donde escuchar", default=DEFAULT_PORT)
+                      help="Numero de puerto TCP donde escuchar",
+                      default=DEFAULT_PORT)
     parser.add_option("-v", "--verbose", dest="level", action="store",
-                      help="Determina cuanta informacion de depuracion a mostrar"
+                      help="Determina cuanta informacion"
+                      "de depuracion a mostrar"
                       "(valores posibles son: ERROR, WARN, INFO, DEBUG)",
                       default="ERROR")
     options, args = parser.parse_args()

@@ -68,4 +68,3 @@ HELP_TEXT = (
     "  help\r\n"
     "      Shows this help message.\r\n"
 )
-

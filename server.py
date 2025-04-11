@@ -24,8 +24,8 @@ class Server(object):
                  directory: str = DEFAULT_DIR) -> None:
         print("Serving %s on %s:%s." % (directory, addr, port))
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
-        self.s.bind((addr,port))
+        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.s.bind((addr, port))
         self.dir = directory
         # FALTA: Crear socket del servidor, configurarlo, asignarlo
         # a una dirección y puerto, etc.
@@ -39,16 +39,16 @@ class Server(object):
         hilos = []
 
         # Se crea e inicia hilo encargado de cerrar conexiones
-        thr_purge = threading.Thread(target=purge, 
-                                     args=(hilos,), 
+        thr_purge = threading.Thread(target=purge,
+                                     args=(hilos,),
                                      daemon=True)
         thr_purge.start()
-        
+
         # Configuacion para escuchar solicitud de conexion
         self.s.listen(N_THREADS)
 
         while True:
-            
+
             # Se intentan iniciar nuevos hilos para manejar solicitudes
             try:
                 # Creacion del socket, conexion e hilo.
@@ -57,18 +57,21 @@ class Server(object):
                 thr = threading.Thread(target=conn.handle, daemon=True)
                 thr.start()
 
-                # Se almacena hilo creado en hilos para su 
+                # Se almacena hilo creado en hilos para su
                 # posterior cierre
-                hilos.append((thr,sock,conn))
+                hilos.append((thr, sock, conn))
 
-            # Si ocurre algun error cierra el servidor 
-            except (ConnectionError, TimeoutError, 
-                    RuntimeError, MemoryError, 
+            # Si ocurre algun error cierra el servidor
+            except (ConnectionError, TimeoutError,
+                    RuntimeError, MemoryError,
                     Exception, KeyboardInterrupt):
 
                 break
 
-def purge(hilos: List[tuple[threading.Thread, socket.socket, connection. Connection]]) -> None:
+
+def purge(hilos: List[tuple[threading.Thread,
+                            socket.socket,
+                            connection. Connection]]) -> None:
     """
     Elimina los hilos que ya no deben ser atendidos liberando
     así los recursos utilizados
@@ -81,7 +84,6 @@ def purge(hilos: List[tuple[threading.Thread, socket.socket, connection. Connect
             if not h[2].connected:
                 h[0].join()
                 h[1].close()
-
 
 
 def main() -> None:
