@@ -43,12 +43,17 @@ void Generator::finish() {
 void Generator::handleMessage(cMessage *msg) {
 
     // create new packet
-    cMessage *pkt = new cMessage("packet");
+    cPacket *pkt;
+    pkt = new cPacket("packet");
+    pkt->setByteLEngth(par("packetByteSize"));
+    pkt->encapsulate(msg);
+    //cMessage *pkt = new cMessage("packet"); 
     // send to the output
     send(pkt, "out");
 
     // compute the new departure time
     simtime_t departureTime = simTime() + par("generationInterval");
+    
     // schedule the new packet generation
     scheduleAt(departureTime, sendMsgEvent);
 }
