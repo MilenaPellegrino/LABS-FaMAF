@@ -17,7 +17,7 @@ private:
     cMessage *endServiceEvent;
     // Var para calcular tiempo de envio.
     simtime_t serviceTime;
-    // Vector que cuenta tamaño de paquetes (aun no en uso).
+    // Vector que cuenta paquetes encolados.
     cOutVector bufferSizeVector;
     // Vector que cuenta paquetes deshechados.
     cOutVector packetDropVector;
@@ -54,6 +54,8 @@ Queue::~Queue() {
 // Pone nombre al buffer y inicia la recepcion de mensajes.
 void Queue::initialize() {
     buffer.setName("buffer");
+    bufferSizeVector.setName("bufferSize");
+    packetDropVector.setName("packetDrop");
     endServiceEvent = new cMessage("endService");
 }
 
@@ -72,28 +74,26 @@ void Queue::handleMessage(cMessage *msg) {
             // Envia paquete
             send(pkt, "out");
             // Calcula duracion de envio
-            serviceTime = pkt->getDuration();
-            // Cuando pasen serviceTime secs autoenvia mensaje de via libre.
-            // Es decir cuando pasen serviceTime secs se ejecuta 
-            // handleMessage(endServiceTime)
-            scheduleAt(simTime() + serviceTime, endServiceEvent);
-
+            //serviceTime = pkt->getDuration();            
             /* 
             Ver que opcion preferimos, si la anterior o la sig, la diferencia
             esta en como calcular el serviceTime, si con la duracion del paquete
             o con lo definido en el .ini
             */
-            //serviceTime = par("serviceTime");
-            //scheduleAt(simTime() + serviceTime, endServiceEvent);
+            serviceTime = par("serviceTime");
+            // Cuando pasen serviceTime secs autoenvia mensaje de via libre.
+            // Es decir cuando pasen serviceTime secs se ejecuta 
+            // handleMessage(endServiceTime)
+            scheduleAt(simTime() + serviceTime, endServiceEvent);
         }
     } else { 
     // Si no hay via libre para enviar paquetes
-        if(buffer.getLength() > par("bufferSize")) {
+        if(buffer.getLength() > par("bufferSize").doubleValue()) {
         // Si la longitud de la cola es mayor que lo definido en .ini
             // Tiramos el paquete
             delete msg;
             // Muestra mensaje en interfaz grafica de paquete tirado.
-            this.bubble("packet dropped");
+            this->bubble("packet dropped");
             // Se cuenta el paquete tirado.
             packetDropVector.record(1);
         } else {

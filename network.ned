@@ -1,11 +1,10 @@
-//Este es el segundo archivo que se ejecuta.
-
-/* 
-A continuacion se crean miembros de la clase cSimpleModule
-Su configuracion se vera marcada por los modulos NodeRx, NodeTx, y Network
-Su funcionamiento es definido en el archivo de mismo_nombre_al_miembro.cc
-Ver Queue.cc para mas detalles, los demas mantienen el mismo formato.
-*/
+// Este es el segundo archivo que se ejecuta.
+// /*
+// A continuacion se crean miembros de la clase cSimpleModule
+// Su configuracion se vera marcada por los modulos NodeRx, NodeTx, y Network
+// Su funcionamiento es definido en el archivo de mismo_nombre_al_miembro.cc
+// Ver Queue.cc para mas detalles, los demas mantienen el mismo formato.
+// */
 
 //Anotare en detalle el primer miembro, los demas siguen el mismo formato.
 
@@ -50,10 +49,10 @@ simple Sink
 }
 
 
-/*
-A continuacion empiezan los modulos.
-Definen la configuracion general de la network.
-*/
+///*
+//A continuacion empiezan los modulos.
+//Definen la configuracion general de la network.
+//*/
 
 //Anotare en detalle el primer modulo, los demas siguen el mismo formato.
 

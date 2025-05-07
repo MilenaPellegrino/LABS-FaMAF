@@ -45,8 +45,8 @@ void Generator::handleMessage(cMessage *msg) {
     // create new packet
     cPacket *pkt;
     pkt = new cPacket("packet");
-    pkt->setByteLEngth(par("packetByteSize"));
-    pkt->encapsulate(msg);
+    pkt->setByteLength(par("packetByteSize").doubleValue());
+    // pkt->encapsulate(msg);
     //cMessage *pkt = new cMessage("packet"); 
     // send to the output
     send(pkt, "out");
