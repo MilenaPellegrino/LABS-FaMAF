@@ -1,24 +1,46 @@
+//Este es el segundo archivo que se ejecuta.
+
+/* 
+A continuacion se crean miembros de la clase cSimpleModule
+Su configuracion se vera marcada por los modulos NodeRx, NodeTx, y Network
+Su funcionamiento es definido en el archivo de mismo_nombre_al_miembro.cc
+Ver Queue.cc para mas detalles, los demas mantienen el mismo formato.
+*/
+
+//Anotare en detalle el primer miembro, los demas siguen el mismo formato.
+
+// Miembro Generator, encargado de la creacion de paquetes
 simple Generator
 {
     parameters:
+        // Una suerte de referencia a parametros generales definidos en el .ini
         volatile double generationInterval; // sec
         volatile double packetByteSize; // bytes
+        
+        // Indica como debe visualizarse el modulo en la interfaz omnet
+        // @display("TipoDeElemento=Forma/Icono")
         @display("i=block/source");
+
     gates:
+        // Indica que dicho miembro tiene una conexion de salida.
         output out;
 }
 
+// Miembro Queue, encargado de recibir, enlistar, y enviar paquetes
 simple Queue
 {
     parameters:
         volatile double serviceTime; // sec
         volatile double bufferSize; // bytes
+        
+        
         @display("i=block/queue;q=buffer");
     gates:
         input in;
         output out;
 }
 
+// Miembro Sink, encargado de ser el destino.
 simple Sink
 {
     parameters:
@@ -27,30 +49,23 @@ simple Sink
         input in;
 }
 
-//network Network
-//{
-//    @display("bgl=2");
-//    submodules:
-//        gen: Generator {
-//            @display("p=30,30");
-//        }
-//        queue: Queue {
-//            @display("p=130,30");
-//        }
-//        sink: Sink {
-//            @display("p=230,30");
-//        }
-//    connections:
-//        gen.out --> queue.in;
-//        queue.out --> sink.in;
-//}
 
+/*
+A continuacion empiezan los modulos.
+Definen la configuracion general de la network.
+*/
+
+//Anotare en detalle el primer modulo, los demas siguen el mismo formato.
+
+// Modulo NodeTx encargado de abstraer la conexion entre Generator y Queue.
 module NodeTx
 {
     parameters:
         @display("i=block/routing");
     gates:
         output out;
+
+    // Submodulos que hacen referencia a los modulos Simples definidos arriba.
     submodules:
         gen: Generator {
             parameters:
@@ -60,11 +75,13 @@ module NodeTx
             parameters:
                 @display("p=75,190");
         }
+        // Se establecen las conexiones entre submodulos.
         connections:
             gen.out --> queue.in;
             queue.out --> out;
 }
 
+// Modulo NodeRx encargado de abstraer la conexion entre Queue y Sink.
 module NodeRx
 {
     parameters:
@@ -88,6 +105,7 @@ module NodeRx
                 queue.out --> { datarate = 1Mbps; } --> sink.in;
 }
 
+// Modulo Network principal, se encarga de manejar el comportamiento de la red.
 network Network
 {
     @display("bgl=2");
@@ -102,6 +120,8 @@ network Network
             @display("p=230,30");
         }
         connections:
+            // Observar que entre {} esta definida la tasa de datos y el
+            // retardo en envio de paquetes dentro de esa conexion.
             nodeTx.out --> { datarate = 1Mbps; delay = 100us; } --> queue.in;
             //case study 1
             //queue.out --> { datarate = 0.5Mbps; } --> nodeRx.in;
