@@ -1,0 +1,36 @@
+file 64113 1558974225                                           
+version 2
+run General-0-20190527-18:23:28-7046
+attr configname General
+attr datetime 20190527-18:23:28
+attr experiment General
+attr inifile omnetpp.ini
+attr iterationvars ""
+attr iterationvarsf ""
+attr measurement ""
+attr network Network
+attr processid 7046
+attr repetition 0
+attr replication #0
+attr resultdir results
+attr runnumber 0
+attr seedset 0
+param Network.node[0].app.destination 5
+param Network.node[0].app.interArrivalTime exponential(1)
+param Network.node[0].app.packetByteSize 125000
+param Network.node[2].app.destination 5
+param Network.node[2].app.interArrivalTime exponential(1)
+param Network.node[2].app.packetByteSize 125000
+
+vector 1  Network.node[0].lnk[0]  "Buffer Size"  ETV
+vector 7  Network.node[2].lnk[0]  "Buffer Size"  ETV
+vector 22  Network.node[7].lnk[0]  "Buffer Size"  ETV
+vector 4  Network.node[1].lnk[0]  "Buffer Size"  ETV
+vector 19  Network.node[6].lnk[0]  "Buffer Size"  ETV
+vector 15  Network.node[5].app  Delay  ETV
+1	954 15594 3 5612 0.898560388484 199.773328855839 586 0 190 54451 6821233
+4	16548 9462 23 5611 2.859704212075 199.64898529358 374 0 1 187 187
+7	26010 9502 10 5607 1.859604212075 199.64888529358 377 0 10 1241 6461
+15	35512 7849 56 5625 3.898860388484 199.773628855839 196 3.0003 105.5643977967 10027.195182068 670009.47889675
+19	43361 10354 33 5622 2.898760388484 199.773528855839 394 0 1 197 197
+22	53715 10398 15 5617 1.898660388484 199.773428855839 396 0 1 198 198
