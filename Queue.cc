@@ -70,17 +70,17 @@ void Queue::handleMessage(cMessage *msg) {
         if (!buffer.isEmpty()) {
         // Si hay elementos en el buffer
             // Quita paquete del buffer
-            cMessage *pkt = (cMessage*) buffer.pop();
+            cPacket *pkt = (cPacket*) buffer.pop();
             // Envia paquete
             send(pkt, "out");
             // Calcula duracion de envio
-            //serviceTime = pkt->getDuration();            
+            serviceTime = pkt->getDuration();            
             /* 
             Ver que opcion preferimos, si la anterior o la sig, la diferencia
             esta en como calcular el serviceTime, si con la duracion del paquete
             o con lo definido en el .ini
             */
-            serviceTime = par("serviceTime");
+            //serviceTime = par("serviceTime");
             // Cuando pasen serviceTime secs autoenvia mensaje de via libre.
             // Es decir cuando pasen serviceTime secs se ejecuta 
             // handleMessage(endServiceTime)
