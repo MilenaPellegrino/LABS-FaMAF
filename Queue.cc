@@ -11,6 +11,14 @@ using namespace omnetpp;
 class Queue: public cSimpleModule {
 // Elementos privados, propios de cada instancia de Queue
 private:
+// Elementos publicos, todo el sistema puede accederlos.
+public:
+    // Funciones que no termino de entender
+    // Posiblemente usadas por omnet.
+    Queue();
+    virtual ~Queue();
+// Elementos protegidos, propios y accedidos tambien por subclases.
+protected:
     // Cola donde guardar paquetes entrantes.
     cQueue buffer;
     // Donde se reciben mensajes (nombre confuso).
@@ -21,14 +29,6 @@ private:
     cOutVector bufferSizeVector;
     // Vector que cuenta paquetes deshechados.
     cOutVector packetDropVector;
-// Elementos publicos, todo el sistema puede accederlos.
-public:
-    // Funciones que no termino de entender
-    // Posiblemente usadas por omnet.
-    Queue();
-    virtual ~Queue();
-// Elementos protegidos, propios y accedidos tambien por subclases.
-protected:
     // Metodo de valores iniciales.
     virtual void initialize();
     // Metodo de terminar programa.
@@ -111,4 +111,62 @@ void Queue::handleMessage(cMessage *msg) {
     }
 }
 
+class TransportTx : public Queue {
+protected:
+    void initialize();
+    // Metodo de terminar programa.
+    void finish();
+    // Metodo de manejo de mensajes.
+    void handleMessage(cMessage *msg);
+};
+
+// La sig. linea indica que se definira el comportamiento del modulo definido
+// En el archivo .ned
+Define_Module(TransportTx);
+
+// Pone nombre al buffer y inicia la recepcion de mensajes.
+void TransportTx::initialize() {
+    buffer.setName("buffer");
+    bufferSizeVector.setName("bufferSize");
+    packetDropVector.setName("packetDrop");
+    endServiceEvent = new cMessage("endService");
+}
+
+// Vacio por que?
+void TransportTx::finish() {
+}
+
+// Funcion principal.
+void TransportTx::handleMessage(cMessage *msg) {
+}
+
+class TransportRx : public Queue {
+protected:
+    void initialize();
+    // Metodo de terminar programa.
+    void finish();
+    // Metodo de manejo de mensajes.
+    void handleMessage(cMessage *msg);
+};
+
+// La sig. linea indica que se definira el comportamiento del modulo definido
+// En el archivo .ned
+Define_Module(TransportRx);
+
+// Pone nombre al buffer y inicia la recepcion de mensajes.
+void TransportRx::initialize() {
+    buffer.setName("buffer");
+    bufferSizeVector.setName("bufferSize");
+    packetDropVector.setName("packetDrop");
+    endServiceEvent = new cMessage("endService");
+}
+
+// Vacio por que?
+void TransportRx::finish() {
+}
+
+// Funcion principal.
+void TransportRx::handleMessage(cMessage *msg) {
+}
+    
 #endif /* QUEUE */
