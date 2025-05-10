@@ -1,5 +1,5 @@
 ---
-title: "laboratorio 3 - Redes y Sistemas Distribuidos"
+title: "Analísis de flujo y congestión en redes utilizando simulación discreta "
 author:
   - "Guerrero Diego"
   - "Gonzalez Juan Pablo"
@@ -7,7 +7,7 @@ author:
   - "Pellegrino Milena"
 date: "2025-05-10"
 subject: "redes"
-subtitle: "Transporte: Informe"
+subtitle: "Laboratorio 3 - Redes y Sistemas Distribuidos"
 lang: "es"
 titlepage: true
 titlepage-color: "108062"
@@ -19,21 +19,14 @@ classoption: oneside
 code-block-font-size: \scriptsize
 ---
 
-# laboratorio 3 - Redes y Sistemas Distribuidos
-# Transporte: Informe
+# Analísis de flujo y congestión en redes utilizando simulación discreta 
 
 ## Resumen
-Parrafo resumiendo la totalidad del trabajo y sus resultados
+Descirbe lo que se va a encontrar nuestro lector, si lee nuestro trabajo. 
+Prestenar el problema a trabajar, de que manera la trabajamos, pequena idea de solucion y describir un poco la estrcutura. 
 
-## Índice
 
-1. [Integrantes](#integrantes)
-2. [Introducción](#introduccion)
-3. [Experimento 1](#experimento-1)
-4. [Experimento 2](#experimento-2)
-5. [Conclusiones](#conclusiones)
-6. [Referencias](#referencias)
-7. [Anexo](#anexo)
+El visual de bitbucket para MarkDown, no es el mejor, recomendamos verlo en otro lugar. 
 
 ## Integrantes
   - Guerrero Diego
@@ -41,13 +34,47 @@ Parrafo resumiendo la totalidad del trabajo y sus resultados
   - Madero Ismael
   - Pellegrino Milena
 
+## Índice
+
+1. [Introducción](#introducción)
+2. [Experimento 1](#experimento-1)
+3. [Experimento 2](#experimento-2)
+4. [Conclusiones](#conclusiones)
+5. [Referencias](#referencias)
+6. [Anexo](#anexo)
+
+
+
 ## Introducción
 
 En este laboratorio nos centramos en la capa de transporte, con el objetivo de analizar el tráfico de red bajo tasas de datos acotadas y tamaño de buffers limitados, ademas de diseñar y proponer diferentes soluciones de control de congestión y flujo. 
 
 Para poder realizar esto usamos Omnet++, una bibloteca con un marco de simulación en C++ destinado principalmente a la creación de simuladores de red, nosotros lo utilizamos para poder generar estos modelos de red que posteriormente analizamos. 
 
+### Esquema de nuestra red
 
+![Esquema de red](img/General_Network.png)
+
+El esquema de red utilizado es bastante simple, que consta de tres elementos principales: 
+1. nodeTx: nodo generador, es el que genera los paquetes de datos y los envía al siguiente componente (queue). 
+2. queue: cola de paquetes, es un buffer donde los paquetes que llegan son almacenados hasta que se envía al nodo receptor. Sirve para, por ejemplo, si hay congestión, los paquetes se puedan quedar esperando en un lugar, sin que se pierdan. 
+3. nodeRx: sink, el nodo receptor, es el encargado de recibir los datos que fueron enviados desde el nodo generador, los recibe una vez que fueron pasados por la queue.
+
+Además cabe aclarar que internamente cada nodo cuenta con buffer (ver imágenes de abajo) con el objetivo de simular un poco mejor el comportamiento de un red **real**, por ejemplo para simular un retardo realista antes de que el paquete sea transmitido. 
+
+|  |  |
+|----------|----------|
+| ![](img/General_NodeRx.png) | ![](img/General_NodeTx.png) |
+
+### Flujo y congestión 
+Como dijimos anteriormente en la parte de [Introducción](#introducción) queremos diseñar y proponer soluciones de control de congestión y de control de flujo; para esto damos una explicación breve de ambos conceptos para que se pueda entender uno de los objetivos del trabajo:
+
+- **Control de flujo:** Es un mecanismo que regula la velocidad de transmisión de datos entre un emisor y un receptor para evitar sobrecargar los dispositivos y asegurar una comunicación eficiente. EL objetivo es evitar que el emisor envíe más datos de los que el receptor puede procesar, ya que esto podría causar pérdida de información. Para evitar que suceda esto se utilizan algoritmos (vistos en el teórico) que ajustan la velocidad de transmisión según la capacidad del receptor. 
+
+- **Control de congestión:** Es una sobrecarga de la red. Ocurre cuando la cantidad de datos que circulan por la red supera la capacidad de la red, lo que provoca retrasos o peor aún la pérdida de paquetes. Esto se suele solucionar con técnicas como el control de tráfico (que lo que hacen en esencia es limitar la cantidad de datos emitidos) o alguna optimización de enrutamiento. 
+
+### Simulación discreta
+Para los análisis de los experimentos (tanto del experimento 1, como del experimento 2) realizamos simulaciones discretas, es decir, los eventos ocurren en momentos específicos y el tiempo ocurre en pasos discretos, nosotros utilizamos Omnet++. Hacerlo de esta manera nos permite evaluar el desempeño de una red sin la necesidad de tenerla físicamente.
 
 
 # Experimento 1
@@ -94,6 +121,7 @@ escribir una conclusion o algo asi
 - [Graficas en Omnet++ con Python y Notebooks](https://www.youtube.com/watch?v=yL1gf04E2_E)
 - [Curva de Carga Ofrecida vs Carga Util](https://www.youtube.com/watch?v=W8r8zSPjeAs)
 - [Estructura de un informe](https://www.youtube.com/watch?v=yq8zjLZABe0)
+
 Cabe aclarar que vimos el video sobre la estructura del informe, pero solo incluimos algunos apartados como abstract, referencias, introducción. Para los otros nos tomamos la libertad de divididir el informe en secciones de exp1 y exp2 y luego un apartado de conclusiones general. (en el video se proponia que en la introducción pongamos el análisis de los problemas en el caso1 y caso2, en una sección método se explique la tarea de diseño, etc; nosotros decidimos hacerlo de esta manera ya que nos parecio un poco mas prolijo y mas ordenado a la hora en la que alguien lo tenga que leer; igualmente tenemos en cuenta que esto puede ser subjetivo y podriamos haber seguido la alineación propuesta por la catedra). 
 
 ## Anexo
@@ -118,7 +146,3 @@ Hemos utilizado diferentes herramientas de Inteligencia Artificial a lo largo de
       - **Verificación**: Acá no verificamos muchos, ya que utilizamos la herramienta para poder ver si lo que habiamos leído sobre [scheduleAt](https://doc.omnetpp.org/omnetpp/apiclassomnetpp_1_1cSimpleModulehtml#a97c57271ca2fc95225ed8514750cac27)  era correcto o estabamos mal encaminados.
 
 2. 
-
-
-
-  scheduleAt()
