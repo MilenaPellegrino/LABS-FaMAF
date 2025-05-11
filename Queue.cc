@@ -113,6 +113,7 @@ void Queue::handleMessage(cMessage *msg) {
 
 class TransportTx : public Queue {
 private:
+    int ignore;
     double timeModifier;
 protected:
     void initialize();
@@ -129,6 +130,8 @@ Define_Module(TransportTx);
 // Pone nombre al buffer y inicia la recepcion de mensajes.
 void TransportTx::initialize() {
     timeModifier = 0;
+    serviceTime = 0;
+    ignore = 10;
     buffer.setName("buffer");
     bufferSizeVector.setName("bufferSize");
     packetDropVector.setName("packetDrop");
@@ -149,21 +152,23 @@ void TransportTx::handleMessage(cMessage *msg) {
             // Si hay elementos en el buffer
                 // Quita paquete del buffer
                 cPacket *pkt = (cPacket*) buffer.pop();
-                pkt->addPar("traTxTime") = const_simtime_t();
+                double aux_st;
                 // Envia paquete
+                pkt->addPar("traTxTime") = simTime().dbl();
+                pkt->addPar("serviceTime") = serviceTime.dbl();
                 send(pkt, "toOut$o");
-                // Calcula duracion de envio
-                if (timeModifier == 0) {
-                    serviceTime = pkt->getDuration();
-                } else {
-                    serviceTime = pkt->getDuration() * timeModifier;
-                }           
-                /* 
-                Ver que opcion preferimos, si la anterior o la sig, la diferencia
-                esta en como calcular el serviceTime, si con la duracion del paquete
-                o con lo definido en el .ini
-                */
-                //serviceTime = par("serviceTime");
+                // Calcula duracion de envio         
+                if (serviceTime == 0) {
+                    serviceTime = pkt->getDuration().dbl();
+                }
+                if (timeModifier != 0) {
+                    serviceTime += serviceTime*timeModifier;
+                }
+                timeModifier = 0;
+                aux_st = pkt->getDuration().dbl();
+                if (serviceTime < aux_st) {
+                    serviceTime = aux_st;
+                }
                 // Cuando pasen serviceTime secs autoenvia mensaje de via libre.
                 // Es decir cuando pasen serviceTime secs se ejecuta 
                 // handleMessage(endServiceTime)
@@ -193,18 +198,27 @@ void TransportTx::handleMessage(cMessage *msg) {
             }
         }
     case 1:
-        cPacket *pkt = (cPacket*) msg;
-        if (pkt->hasPar("delayAlert")) {
-            timeModifier = pkt->par("delayAlert").doubleValue();
+        return;
+        this->bubble("cesaa 1");
+        if (ignore >= 10) {
+            cPacket *pkt = (cPacket*) msg;
+            if (pkt->hasPar("delayAlert")) {
+                timeModifier = pkt->par("delayAlert").doubleValue();
+                this->bubble(std::to_string(timeModifier).c_str());
+            }
+            ignore = 0;
+        } else {
+            ignore++;
         }
     }
 }
 
 class TransportRx : public Queue {
 private: 
-    double newDelayMean;
+    double newExpDelay;
+    double newDelayAvg;
     cQueue delays;
-    void countMean();
+    void countAvg();
 protected:
     void initialize();
     // Metodo de terminar programa.
@@ -260,36 +274,34 @@ void TransportRx::handleMessage(cMessage *msg) {
             packetDropVector.record(1);
         } else {
         // Si hay espacio en la cola
-            cPacket *pkt = (cPacket*) msg;
-            double aux, delay = pkt->par("traTxTime");
+            cPacket *del = new cPacket("del_packet"), *pkt = (cPacket*) msg;
+            double aux, delay, expDelay;
             // Encolar el paquete
             buffer.insert(msg);
+            newExpDelay = pkt->par("serviceTime");
+            delay = pkt->par("traTxTime");
             delay = const_simtime_t() - delay;
-            // VERCOMO MIERDA GUARDAR EN LA COLA
-            // CONSIDERAR CAMBIAR CQUEUE POR OTRA MIERDA
+            del->addPar("delay") = delay;
             if (delays.getLength() < 10) {
-                delays.insert(delayObj);
+                delays.insert(del);
             } else {
                 delays.pop();
-                delays.insert(delayObj);
+                delays.insert(del);
             }
-            aux = newDelayMean;
-            countMean();
-            if (aux!=0) {
-                if (aux + aux*0.25 <= newDelayMean) {
+            countAvg();
+            if (newExpDelay != 0 && newDelayAvg != 0) {
+                double aux;
+                aux = newDelayAvg/(newExpDelay/100);
+                aux = aux -1;   
+                if (newExpDelay+(0.5* newExpDelay) < newDelayAvg) {
                     cPacket *appPkt = new cPacket("app_packet");
                     appPkt->setKind(1);
-                    appPkt->par("delayAlert") = 0.25;
+                    appPkt->addPar("delayAlert") = aux;
                     send(appPkt, "toApp");
-                } else if (aux - aux*0.25 >= newDelayMean) {
+                } else if (newExpDelay-0.5*newExpDelay > newDelayAvg && newExpDelay != 0) {
                     cPacket *appPkt = new cPacket("app_packet");
                     appPkt->setKind(1);
-                    appPkt->par("delayAlert") = -0.25;
-                    send(appPkt, "toApp");
-                } else {
-                    cPacket *appPkt = new cPacket("app_packet");
-                    appPkt->setKind(1);
-                    appPkt->par("delayAlert") = 0;
+                    appPkt->addPar("delayAlert") = aux;
                     send(appPkt, "toApp");
                 }
             }
@@ -304,15 +316,23 @@ void TransportRx::handleMessage(cMessage *msg) {
     }
 }
 
-void TransportRx::countMean() {
+void TransportRx::countAvg() {
     cQueue *aux = delays.dup();
-    double iaux, length, sum = 0;
+    cPacket *del_pkt;
+    double iaux, length = 0, sum1 = 0;
     length = aux->getLength();
     while (!aux->isEmpty()) {
-        iaux = ((cValue*)aux->pop())->doubleValue();
-        sum += iaux;
+        del_pkt = (cPacket*) aux->pop();
+        if (del_pkt->hasPar("delay")) {
+            iaux = del_pkt->par("delay").doubleValue();
+            length++;
+
+        } else {
+            iaux = 0;
+        }
+        sum1 += iaux;
     }
-    newDelayMean = sum / length;
+    newDelayAvg = sum1 / length;
     aux->~cQueue();
 }
     
