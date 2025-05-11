@@ -79,14 +79,41 @@ Para los análisis de los experimentos (tanto del experimento 1, como del experi
 
 # Experimento 1
 
-bla bla bla 
+Primeramente recordemos los parámetros de nuestra red, para este experimento:
+Recordemos que en el archivo .ini se encuentran estos parámetros, obviamente se pueden modificar, pero los experimentos los fijamos con los siguientes: 
+
+- Tamaño de los paquetes: 12500 bytes 
+- Tamaño de los buffers: 
+   - nodeRx: 200
+   - nodeTx: 2000000 
+   - queue (buffer del medio): 200
+- Intervalo de generación: exponential(0.001), es decir, se elige un numero de la distribución exponencial con media 0.001 
+
+- Desde el nodeTx hacia el nodo intermedio: 
+   - Velocidad de tasa de datos: 1Mbps
+   - Delay: 100us
+
+Luego tenemos los parametros de el datarate y los delay de los demas nodos, que son lo que cambia en nuestros casos de estudios. (ambos datos se especifican en la parte de los casos de estudio.)
+
+El objetivo de este experimento es poder analizar el comportamiento de la red al variar el intervalo de generación (entre 0.1s y 1.0s) esto es común en ambos experimentos. Lo que nosotros observamos para poder hacer el analísis es: 
+1. El uso de las tres queue 
+2. Relación entre carga transmitida y carga recibida (paquetes/segundo).
+3. En el caso de que haya pérdidas, medirlas y analizarlas, a través de gráficos. 
 
 ## Caso de estudio 1
 
-explicacion graficos y toda la bola del experimento 1 
+Primeramente recordemos la tasa de datos para este caso de estudio: 
+- `queue.out --> { datarate = 0.5Mbps; } --> sink.in;` es decir, nuestra tasa de datos, desde el nodo intermedio hacia el sink es de 0.5Mbps
+- `queue.out --> { datarate = 0.5Mbps; } --> nodeRx.in;` 
+
+
+
 
 ## Caso de estudio 2
-explicacion graficos y toda la bola del experimento 2
+Primeramente recordemos la tasa de datos para este caso de estudio:
+- `queue.out --> { datarate = 1Mbps; } --> sink.in;` es decir, nuestra tasa de datos es de 1Mbps, el doble que el caso de estudio 1. 
+- `queue.out --> { datarate = 0.5Mbps; delay = 100us; } --> nodeRx.in;`, es decir, es la misma tasa de datos (0.5 Mbps) del caso de estudio 1, pero ahora se agrega un retardo de 100 µs en la transmisión hacia NodeRx
+
 
 ## Preguntas
 
