@@ -106,7 +106,18 @@ Primeramente recordemos la tasa de datos para este caso de estudio:
 - `queue.out --> { datarate = 0.5Mbps; } --> sink.in;` es decir, nuestra tasa de datos, desde el nodo intermedio hacia el sink es de 0.5Mbps
 - `queue.out --> { datarate = 0.5Mbps; } --> nodeRx.in;` 
 
+Para poder analizar este caso de estudio, se hicieron diferentes graficas, a partir de los datos extraidos en las simulaciones con los parametros establecidos anteriormente.
 
+| Imagen | Descripción |
+|--------|-------------|
+| ![Buffer en tiempo](img/buffer_tiempo.png) | Llenada de buffer de queue. Este nodo tiene la mitad del datarate, sube linealmente hasta el máximo y luego se mantiene. Siempre tiene 200, saca uno y entra uno. |
+| ![Evolución del buffer](img/buffer_tam.png) | Tamaño del buffer del nodeTx. Se explica como evoluciona el tamaño del buffer a lo largo del tiempo. |
+| ![Buffers y descartados](img/buffer_y_descartes.png) | Cómo afecta el tamaño del buffer a la cantidad de paquetes descartados. |
+| ![Estado final](img/estado_final.png) | Muestra la distribución final de los paquetes en los distintos tipos de buffers.  |
+| ![generados usados y perdidos](img/gen_us_per.png) | Presenta los datos normalizados (dividido entre 200) sobre paquetes generados, usados y perdidos en nuestra red. |
+| ![paquetes descartados en tiempo](img/paquetes_descartado_tiempo.png) | Muestra la cantidad de paquetes descartados en el tiempo.|
+| ![promedio de buffer descartados](img/promedio_buffer_descartado.png) | Muestra la cantidad de paquetes generados, (cuantos se usaron y cuantos se generaron).  |
+| ![utilizados vs generados](img/utilizados_vs_generador.png) | Mostramos como la proporción de paquetes usados vs generados y su evolución en el tiempo.|
 
 
 ## Caso de estudio 2
@@ -115,9 +126,21 @@ Primeramente recordemos la tasa de datos para este caso de estudio:
 - `queue.out --> { datarate = 0.5Mbps; delay = 100us; } --> nodeRx.in;`, es decir, es la misma tasa de datos (0.5 Mbps) del caso de estudio 1, pero ahora se agrega un retardo de 100 µs en la transmisión hacia NodeRx
 
 
+Para poder analizar este caso de estudio, se hicieron diferentes graficas, a partir de los datos extraidos en las simulaciones con los parametros establecidos anteriormente.
+
+
+| ![Buffer en tiempo](img/buffer_tiempo.png) | ![Evolución del buffer](img/buffer_tam.png) | ![Buffers y descartados](img/buffer_y_descartes.png) | ![Estado final](img/estado_final.png) |
+|-----------|-----------|-----------|-----------|
+| ![generados usados y perdidos](img/gen_us_per.png)   | ![paquetes descartados en tiempo](img/paquetes_descartado_tiempo.png)  | ![promedio de buffer descartados](img/promedio_buffer_descartado.png)  | ![utilizados vs generados](img/utilizados_vs_generador.png) |
+
+
 ## Preguntas
 
-respuesta de la pregunta que esta en el informe
+**¿Qué diferencia observa entre el caso de estudio 1 y 2? ¿Cuál es la fuente limitante en cada uno? Investigue sobre la diferencia entre control de flujo y control de congestión (ver Figura 6-22 del libro Tanenbaum).**
+
+Recordemos que la imagen del Tanenbaum es esta: 
+
+![imagen del tanenmbaum](img/tanenbaum_6-22.PNG)
 
 
 # Experimento 2
@@ -172,4 +195,8 @@ Hemos utilizado diferentes herramientas de Inteligencia Artificial a lo largo de
       - **Respuesta**: *¡Exactamente! 🙌 En OMNeT++, scheduleAt(tiempo, mensaje) agenda un evento (mensaje) para que sea entregado al mismo módulo que lo programó, en el momento tiempo del reloj de simulación*
       - **Verificación**: Acá no verificamos muchos, ya que utilizamos la herramienta para poder ver si lo que habiamos leído sobre [scheduleAt](https://doc.omnetpp.org/omnetpp/apiclassomnetpp_1_1cSimpleModulehtml#a97c57271ca2fc95225ed8514750cac27)  era correcto o estabamos mal encaminados.
 
-2. 
+2. Utilización de [Gemini](https://gemini.google.com/), lo usamos al utilizar [Google Colab](https://colab.google/) muchas veces teníamos varios errores al hacer las gráficas, y la explicación del error que tiraba python o la librería que usabamos era muy vaga y no llegabamos a entenderla, por lo tanto como Colab tiene incorporado Gemini, lo utilizamos para que nos explique mejor estos errores: 
+   1. 
+      - **Prompt**: Porfavor, podrías explicarme este error: [insertabamos el error] ejemplo: `AttributeError: 'float' object has no attribute 'split' `
+      - **Respuesta**: *The error message AttributeError: 'float' object has no attribute 'split' indicates that you are trying to apply the split() method to a float object, but this method is only available for strings. This is happening because time_gen, time_queue, time_sink, buffer_gen, buffer_queue, and buffer_sink variables are already lists of floats based on the Global variables provided. The line of code time_gen[0].split() tries to access the first element of time_gen, which is a float, and then apply the split() method to it. Since floats don't have a split() method, this causes an AttributeError.*
+      - **Verificación**: La verificación era hacer lo que nos decía y ver si tenía razón. Cabe aclarar que para la mayoría no era 100% correcto, pero nos tiraba una idea de cual era el problema del error y pensando un poco se solucionaba. 
