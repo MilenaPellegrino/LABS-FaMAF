@@ -52,6 +52,7 @@ simple TransportTx
 {
     parameters:
         int bufferSize;
+        int ignore;
         @display("i=block/queue;q=buffer");
     gates:
         input toApp;
@@ -62,6 +63,7 @@ simple TransportRx
 {
     parameters:
         double errPercent;
+        int delaySize;
         int bufferSize;
         @display("i=block/queue;q=buffer");
     gates:
@@ -141,7 +143,7 @@ network Network
         queue: Queue {
             @display("p=130,30");
         }
-        trqueue: Queue {
+        appQueue: Queue {
             @display("p=130,90");
         }
         nodeRx: NodeRx {
@@ -155,6 +157,6 @@ network Network
             queue.out --> { datarate = 0.5Mbps; } --> nodeRx.in;
             //case study 2
             //queue.out --> { datarate = 0.5Mbps; delay = 100us; } --> nodeRx.in;
-            nodeRx.out --> trqueue.in;
-            trqueue.out --> nodeTx.in;
+            nodeRx.out --> appQueue.in;
+            appQueue.out --> nodeTx.in;
 }

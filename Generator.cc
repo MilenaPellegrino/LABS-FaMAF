@@ -46,6 +46,7 @@ void Generator::handleMessage(cMessage *msg) {
     cPacket *pkt;
     pkt = new cPacket("packet");
     pkt->setByteLength(par("packetByteSize").doubleValue());
+    // Se pone con tipo 0
     pkt->setKind(0);
     // pkt->encapsulate(msg);
     //cMessage *pkt = new cMessage("packet"); 

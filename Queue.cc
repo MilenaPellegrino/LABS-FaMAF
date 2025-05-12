@@ -113,8 +113,11 @@ void Queue::handleMessage(cMessage *msg) {
 
 class TransportTx : public Queue {
 private:
+    // Intervalos de paquetes a ignorar desde la app
     int ignore;
-    simtime_t timeModifier, prevTimeModifier, scheduledTime;
+    // timeModifier es un porcentaje obtenido desde la app
+    // scheduledTime se encarga de saber cuando se envia el ultimo paq mandado
+    simtime_t timeModifier, scheduledTime;
 protected:
     void initialize();
     // Metodo de terminar programa.
@@ -129,11 +132,14 @@ Define_Module(TransportTx);
 
 // Pone nombre al buffer y inicia la recepcion de mensajes.
 void TransportTx::initialize() {
+    // Valores iniciales
     timeModifier = 0;
-    prevTimeModifier = 0;
+    // A mayor serviceTime menos envio de paquetes
+    // A menor serviceTime mas envio de paquetes
     serviceTime = 0;
     scheduledTime = 0;
-    ignore = 10;
+    ignore = par("ignore").intValue();
+    // WATCH sirve para ver valores en tiempos de ejecucion
     WATCH(timeModifier);
     buffer.setName("buffer");
     bufferSizeVector.setName("bufferSize");
@@ -147,9 +153,10 @@ void TransportTx::finish() {
 
 // Funcion principal.
 void TransportTx::handleMessage(cMessage *msg) {
+    // Analisis por casos sobre el tipo de mensaje recibido
     switch(((cPacket *)msg)->getKind()) {
     case 0:
-        this->bubble("Caso 0");
+    // Mensaje para destino.
         if (msg == endServiceEvent) {
         // Si hay via libre para enviar paquetes
             if (!buffer.isEmpty()) {
@@ -157,13 +164,15 @@ void TransportTx::handleMessage(cMessage *msg) {
                 // Quita paquete del buffer
                 cPacket *pkt = (cPacket*) buffer.pop();
                 simtime_t aux_st;
-                // Envia paquete
+                // Guardo tiempo de salida del paquete desde NodeTx en paquete
                 pkt->addPar("traTxTime") = simTime().dbl();
+                // Envia paquete
                 send(pkt, "toOut$o");
-                // Calcula duracion de envio         
+                // Calcula duracion de envio en caso inicial.
                 if (serviceTime == 0) {
                     serviceTime = pkt->getDuration();
                 }
+                // Revisa si el serviceTime es menor que el tiempo de envio.
                 aux_st = pkt->getDuration();
                 if (serviceTime < aux_st) {
                     serviceTime = aux_st;
@@ -171,6 +180,7 @@ void TransportTx::handleMessage(cMessage *msg) {
                 // Cuando pasen serviceTime secs autoenvia mensaje de via libre.
                 // Es decir cuando pasen serviceTime secs se ejecuta 
                 // handleMessage(endServiceTime)
+                // Guarda el tiempo en el que se enviara el paquete.
                 scheduledTime = simTime() + serviceTime;
                 scheduleAt(scheduledTime, endServiceEvent);
             }
@@ -199,18 +209,27 @@ void TransportTx::handleMessage(cMessage *msg) {
         }
         break;
     case 1:
+    // Si el paquete viene desde la App.
         this->bubble("Caso 1");
-        if (ignore >= 10) {
+        // El sig if, sirve para rafaga de paquetes
+        // hasta estabilizar el promedio en el TransportTx
+        if (ignore == par("ignore").intValue()) {
+        // Si no debemos ignorar el paquete
+            //Guardamos el paquete.
             cPacket *pkt = (cPacket*) msg;
+            // Le agregamos al timeModifier el valor de porcentaje solicitado.
             timeModifier += pkt->par("delayAlert").doubleValue();
-            if (timeModifier != prevTimeModifier) {
-                serviceTime += serviceTime*timeModifier.dbl();
-            }
-            prevTimeModifier = timeModifier;
+            // Se modifica el serviceTime con respecto al porcentaje que
+            // debe aumentar o bajar
+            serviceTime += serviceTime*timeModifier.dbl();
+            // Se setea el ignore en 0 para ignorar los sig. paquetes.
             ignore = 0;
         } else {
+        // Si debemos ignorar el paquete
+            // Se suma 1 a ignore
             ignore++;
         }
+        // Borramos mensaje recibido.
         delete msg;
         break;
     }
@@ -218,8 +237,17 @@ void TransportTx::handleMessage(cMessage *msg) {
 
 class TransportRx : public Queue {
 private:
-    simtime_t avgDelay, prevPktTime, aux, delay;
+    // avgDelay sigue el promedio de los delays
+    // pktTime registra el momento en que llega el paq. actual.
+    // prevPkttime sirve para registrar en que momento llego el paq. anterior
+    // delay se utiliza para registrar el delay actual
+    // aux se utiliza para calcular el porcentaje de diferencia entre 
+    // el avgDelay con el delay actual
+    simtime_t avgDelay, prevPktTime, pktTime, aux, delay;
+    // Cola que guarda los ultimos delays
     cQueue delays;
+    // Funcion que calcula y modifica avgDelay para almacenar 
+    // el promedio de la cola delays
     void countAvg();
 protected:
     void initialize();
@@ -235,15 +263,19 @@ Define_Module(TransportRx);
 
 // Pone nombre al buffer y inicia la recepcion de mensajes.
 void TransportRx::initialize() {
+    // Valores inicializados en 0
     avgDelay = 0;
     prevPktTime = 0;
+    // Funciones para ver valores en tiempo de ejecucion
     WATCH(avgDelay);
     WATCH(aux);
     WATCH(delay);
+    // Funciones de inicio de colas y vectores.
     buffer.setName("buffer");
     delays.setName("delays");
     bufferSizeVector.setName("bufferSize");
     packetDropVector.setName("packetDrop");
+    // Inicio de manejo de mensajes con sig. linea
     endServiceEvent = new cMessage("endService");
 }
 
@@ -281,45 +313,90 @@ void TransportRx::handleMessage(cMessage *msg) {
             packetDropVector.record(1);
         } else {
         // Si hay espacio en la cola
-            cPacket *del = new cPacket("del_packet"), *pkt = (cPacket*) msg;
-            simtime_t pktTime;
+            // Se registra el tiempo de llegada del paquete.
             pktTime = simTime();
             // Encolar el paquete
             buffer.insert(msg);
-            delay = pktTime - pkt->par("traTxTime").doubleValue();
-            del->addPar("delay") = delay.dbl();
-            if (delays.getLength() < 5) {
-                delays.insert(del);
-            } else {
-                delays.pop();
-                delays.insert(del);
-            }
-            if (delay != 0 && avgDelay != 0) {
-                aux = (delay - avgDelay)/avgDelay;
 
+            // Se crea un paquete para guardar en cola delays.
+            cPacket *del = new cPacket("del_packet"), *pkt = (cPacket*) msg;
+            // Se calcula el delay del paquete recibido
+            delay = pktTime - pkt->par("traTxTime").doubleValue();
+            // Se guarda el delay en el paquete que se guardara en delays.
+            del->addPar("delay") = delay.dbl();
+            //El sig if se encarga de que la cola nunca tenga mas elementos 
+            //de los solicitados
+            if (delays.getLength() >= par("delaySize").intValue()) {
+            // Si la cola llego al limite
+                //Elimino primer elemento
+                delays.pop();    
+            }
+            // Guardo el paquete en delays.
+            delays.insert(del);
+            // Si delay y avgDelay no tienen sus valores iniciales
+            if (delay != 0 && avgDelay != 0) {
+                // Calculo el porcentaje de diferencia de delay en avgDelay
+                // Se busca que
+                // delay == avgDelay + avgDelay*aux
+                // despejando aux se consigue lo sig:
+                aux = (delay - avgDelay)/avgDelay;
+                
                 if (aux > par("errPercent") || 
+                // Si el porcentaje de diferencia es mayor al 
+                // modulo del error aceptado
                     aux < -par("errPercent").doubleValue()) {
+                    // Creamos paquete para enviar en la App
                     cPacket *appPkt = new cPacket("app_packet");
+                    // Se setea su tipo en 1
                     appPkt->setKind(1);
                     if (aux > 0) {
-                        appPkt->addPar("delayAlert") = par("errPercent").doubleValue();
-                        appPkt->addPar("campus") = "aux > 0";
+                    // Si el porcentaje de diferencia es positivo.
+                        // Se guarda en el paquete el porcentaje 
+                        // a solicitar subir.
+                        appPkt->addPar("delayAlert") = 
+                        par("errPercent").doubleValue(); 
+                        //appPkt->addPar("delayAlert") = aux.dbl(); //199526
+                        // Campo de debuggeo
+                        appPkt->addPar("campus") = "aux > 0"; //199174
                     } else {
+                    // Si el porcentaje de diferencia es negativo
+                        // Se guarda en el paquete el porcentaje
+                        // a solicitar bajar
                         appPkt->addPar("delayAlert") = -par("errPercent").doubleValue();
+                        //appPkt->addPar("delayAlert") = aux.dbl();
+                        // Campo de debuggeo
                         appPkt->addPar("campus") = "aux < 0";
                     }
+                    // Envio paquete.
                     send(appPkt, "toApp");
                 } else if (prevPktTime != 0){
-                    if (prevPktTime+(delay*(1+par("errPercent").doubleValue())) <= pktTime) {
+                // Si el porcentaje de dif entra dentro del error aceptado
+                // y el prevPktTime es distinto al valor inicial
+                    if (prevPktTime+delay*(1+par("errPercent").doubleValue())
+                        <= pktTime) {
+                    //Si el tiempo de llegada del paquete anterior mas el
+                    //delay promedio es mayor al tiempo de llegada del paq.
+                    //actual.
+                    //Quiere decir que el TransportTx envia paquetes mas lento
+                    //de lo que puede
+                        // Creo paquete a enviar
                         cPacket *appPkt = new cPacket("app_packet");
+                        // Su tipo sera 1
                         appPkt->setKind(1);
-                        appPkt->addPar("delayAlert") = -par("errPercent").doubleValue();
+                        // Se guarda en el paquete el porcentaje
+                        // a solicitar bajar
+                        appPkt->addPar("delayAlert") = 
+                        -par("errPercent").doubleValue();
+                        // Seteo campo de debuggeo
                         appPkt->addPar("campus") = "outro";
+                        // Envio paquete.
                         send(appPkt, "toApp");
                     }
                 }
             }
+            // Calculo el promedio de la lista delay
             countAvg();
+            // Guardo el tiempo de llegada del paquete recibido.
             prevPktTime = pktTime;
             // Se actualiza tamaño de cola actual.
             bufferSizeVector.record(buffer.getLength());
@@ -333,23 +410,32 @@ void TransportRx::handleMessage(cMessage *msg) {
 }
 
 void TransportRx::countAvg() {
+    // Guardo en lista auxiliar copia de delays.
     cQueue *aux = delays.dup();
+    // Creo paquete para iterar elementos
     cPacket *del_pkt;
-    simtime_t iaux, sum1 = 0;
-    int length;
-    length = 0;
+    // Variables para computar suma
+    simtime_t sum = 0;
+    // Guardo longitud de cola
+    int length = 0;
     while (!aux->isEmpty()) {
+    // Mientras haya elementos en la cola
+        // Quito el primer elemento y lo guardo
         del_pkt = (cPacket*) aux->pop();
         if (del_pkt->hasPar("delay")) {
-            iaux = del_pkt->par("delay").doubleValue();
+        // Si existe el campo delay
+            // Se suma el delay
+            sum += del_pkt->par("delay").doubleValue();
+            // Se cuenta el elemento
             length++;
-
         } else {
-            iaux = 0;
+        // si no existe no guarda nada
+            sum += 0;
         }
-        sum1 += iaux;
     }
-    avgDelay = sum1 / length;
+    //Se calcula el promedio en variable global
+    avgDelay = sum / length;
+    //Se borra lista auxiliar.
     aux->~cQueue();
 }
     
