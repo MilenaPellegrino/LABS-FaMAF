@@ -114,7 +114,7 @@ void Queue::handleMessage(cMessage *msg) {
 class TransportTx : public Queue {
 private:
     int ignore;
-    double timeModifier;
+    simtime_t timeModifier, prevTimeModifier, scheduledTime;
 protected:
     void initialize();
     // Metodo de terminar programa.
@@ -130,7 +130,9 @@ Define_Module(TransportTx);
 // Pone nombre al buffer y inicia la recepcion de mensajes.
 void TransportTx::initialize() {
     timeModifier = 0;
+    prevTimeModifier = 0;
     serviceTime = 0;
+    scheduledTime = 0;
     ignore = 10;
     buffer.setName("buffer");
     bufferSizeVector.setName("bufferSize");
@@ -144,35 +146,32 @@ void TransportTx::finish() {
 
 // Funcion principal.
 void TransportTx::handleMessage(cMessage *msg) {
-    switch(msg->getKind()) {
+    switch(((cPacket *)msg)->getKind()) {
     case 0:
+        this->bubble("Caso 0");
         if (msg == endServiceEvent) {
         // Si hay via libre para enviar paquetes
             if (!buffer.isEmpty()) {
             // Si hay elementos en el buffer
                 // Quita paquete del buffer
                 cPacket *pkt = (cPacket*) buffer.pop();
-                double aux_st;
+                simtime_t aux_st;
                 // Envia paquete
                 pkt->addPar("traTxTime") = simTime().dbl();
-                pkt->addPar("serviceTime") = serviceTime.dbl();
                 send(pkt, "toOut$o");
                 // Calcula duracion de envio         
                 if (serviceTime == 0) {
-                    serviceTime = pkt->getDuration().dbl();
+                    serviceTime = pkt->getDuration();
                 }
-                if (timeModifier != 0) {
-                    serviceTime += serviceTime*timeModifier;
-                }
-                timeModifier = 0;
-                aux_st = pkt->getDuration().dbl();
+                aux_st = pkt->getDuration();
                 if (serviceTime < aux_st) {
                     serviceTime = aux_st;
                 }
                 // Cuando pasen serviceTime secs autoenvia mensaje de via libre.
                 // Es decir cuando pasen serviceTime secs se ejecuta 
                 // handleMessage(endServiceTime)
-                scheduleAt(simTime() + serviceTime, endServiceEvent);
+                scheduledTime = simTime() + serviceTime;
+                scheduleAt(scheduledTime, endServiceEvent);
             }
         } else { 
         // Si no hay via libre para enviar paquetes
@@ -190,33 +189,34 @@ void TransportTx::handleMessage(cMessage *msg) {
                 buffer.insert(msg);
                 // Se actualiza tamaño de cola actual.
                 bufferSizeVector.record(buffer.getLength());
-                if (!endServiceEvent->isScheduled()) {
+                if (simTime() >= scheduledTime) {
                 // Si el mensaje ya fue enviado.
                     // Se envia mensaje de via libre.
                     scheduleAt(simTime(), endServiceEvent);
                 }
             }
         }
+        break;
     case 1:
-        return;
-        this->bubble("cesaa 1");
+        this->bubble("Caso 1");
         if (ignore >= 10) {
             cPacket *pkt = (cPacket*) msg;
-            if (pkt->hasPar("delayAlert")) {
-                timeModifier = pkt->par("delayAlert").doubleValue();
-                this->bubble(std::to_string(timeModifier).c_str());
+            timeModifier += pkt->par("delayAlert").doubleValue();
+            if (timeModifier != prevTimeModifier) {
+                serviceTime += serviceTime*timeModifier.dbl();
             }
+            prevTimeModifier = timeModifier;
             ignore = 0;
         } else {
             ignore++;
         }
+        break;
     }
 }
 
 class TransportRx : public Queue {
-private: 
-    double newExpDelay;
-    double newDelayAvg;
+private:
+    simtime_t avgDelay, prevPktTime;
     cQueue delays;
     void countAvg();
 protected:
@@ -233,6 +233,7 @@ Define_Module(TransportRx);
 
 // Pone nombre al buffer y inicia la recepcion de mensajes.
 void TransportRx::initialize() {
+    prevPktTime = 0;
     buffer.setName("buffer");
     delays.setName("delays");
     bufferSizeVector.setName("bufferSize");
@@ -275,36 +276,42 @@ void TransportRx::handleMessage(cMessage *msg) {
         } else {
         // Si hay espacio en la cola
             cPacket *del = new cPacket("del_packet"), *pkt = (cPacket*) msg;
-            double aux, delay, expDelay;
+            simtime_t aux, delay, pktTime;
+            pktTime = simTime();
             // Encolar el paquete
             buffer.insert(msg);
-            newExpDelay = pkt->par("serviceTime");
-            delay = pkt->par("traTxTime");
-            delay = const_simtime_t() - delay;
-            del->addPar("delay") = delay;
-            if (delays.getLength() < 10) {
+            delay = pktTime - pkt->par("traTxTime").doubleValue();
+            del->addPar("delay") = delay.dbl();
+            if (delays.getLength() < 5) {
                 delays.insert(del);
             } else {
                 delays.pop();
                 delays.insert(del);
             }
             countAvg();
-            if (newExpDelay != 0 && newDelayAvg != 0) {
-                double aux;
-                aux = newDelayAvg/(newExpDelay/100);
-                aux = aux -1;   
-                if (newExpDelay+(0.5* newExpDelay) < newDelayAvg) {
+            if (delay != 0 && avgDelay != 0) {
+                aux = (avgDelay - delay)/delay;
+
+                if (aux > par("errPercent") || 
+                    aux < -par("errPercent").doubleValue()) {
                     cPacket *appPkt = new cPacket("app_packet");
                     appPkt->setKind(1);
-                    appPkt->addPar("delayAlert") = aux;
+                    if (aux < 0) {
+                        appPkt->addPar("delayAlert") = par("errPercent").doubleValue();
+                    } else {
+                        appPkt->addPar("delayAlert") = -par("errPercent").doubleValue();
+                    }
                     send(appPkt, "toApp");
-                } else if (newExpDelay-0.5*newExpDelay > newDelayAvg && newExpDelay != 0) {
-                    cPacket *appPkt = new cPacket("app_packet");
-                    appPkt->setKind(1);
-                    appPkt->addPar("delayAlert") = aux;
-                    send(appPkt, "toApp");
+                } else if (prevPktTime != 0){
+                    if (prevPktTime+(delay*(1+par("errPercent").doubleValue())) <= pktTime) {
+                        cPacket *appPkt = new cPacket("app_packet");
+                        appPkt->setKind(1);
+                        appPkt->addPar("delayAlert") = -par("errPercent").doubleValue();
+                        send(appPkt, "toApp");
+                    }
                 }
             }
+            prevPktTime = pktTime;
             // Se actualiza tamaño de cola actual.
             bufferSizeVector.record(buffer.getLength());
             if (!endServiceEvent->isScheduled()) {
@@ -319,7 +326,8 @@ void TransportRx::handleMessage(cMessage *msg) {
 void TransportRx::countAvg() {
     cQueue *aux = delays.dup();
     cPacket *del_pkt;
-    double iaux, length = 0, sum1 = 0;
+    simtime_t iaux, sum1 = 0;
+    int length;
     length = aux->getLength();
     while (!aux->isEmpty()) {
         del_pkt = (cPacket*) aux->pop();
@@ -332,7 +340,7 @@ void TransportRx::countAvg() {
         }
         sum1 += iaux;
     }
-    newDelayAvg = sum1 / length;
+    avgDelay = sum1 / length;
     aux->~cQueue();
 }
     

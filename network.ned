@@ -61,6 +61,7 @@ simple TransportTx
 simple TransportRx
 {
     parameters:
+        double errPercent;
         int bufferSize;
         @display("i=block/queue;q=buffer");
     gates:
