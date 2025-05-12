@@ -134,6 +134,7 @@ void TransportTx::initialize() {
     serviceTime = 0;
     scheduledTime = 0;
     ignore = 10;
+    WATCH(timeModifier);
     buffer.setName("buffer");
     bufferSizeVector.setName("bufferSize");
     packetDropVector.setName("packetDrop");
@@ -210,13 +211,14 @@ void TransportTx::handleMessage(cMessage *msg) {
         } else {
             ignore++;
         }
+        delete msg;
         break;
     }
 }
 
 class TransportRx : public Queue {
 private:
-    simtime_t avgDelay, prevPktTime;
+    simtime_t avgDelay, prevPktTime, aux, delay;
     cQueue delays;
     void countAvg();
 protected:
@@ -233,7 +235,11 @@ Define_Module(TransportRx);
 
 // Pone nombre al buffer y inicia la recepcion de mensajes.
 void TransportRx::initialize() {
+    avgDelay = 0;
     prevPktTime = 0;
+    WATCH(avgDelay);
+    WATCH(aux);
+    WATCH(delay);
     buffer.setName("buffer");
     delays.setName("delays");
     bufferSizeVector.setName("bufferSize");
@@ -276,7 +282,7 @@ void TransportRx::handleMessage(cMessage *msg) {
         } else {
         // Si hay espacio en la cola
             cPacket *del = new cPacket("del_packet"), *pkt = (cPacket*) msg;
-            simtime_t aux, delay, pktTime;
+            simtime_t pktTime;
             pktTime = simTime();
             // Encolar el paquete
             buffer.insert(msg);
@@ -288,18 +294,19 @@ void TransportRx::handleMessage(cMessage *msg) {
                 delays.pop();
                 delays.insert(del);
             }
-            countAvg();
             if (delay != 0 && avgDelay != 0) {
-                aux = (avgDelay - delay)/delay;
+                aux = (delay - avgDelay)/avgDelay;
 
                 if (aux > par("errPercent") || 
                     aux < -par("errPercent").doubleValue()) {
                     cPacket *appPkt = new cPacket("app_packet");
                     appPkt->setKind(1);
-                    if (aux < 0) {
+                    if (aux > 0) {
                         appPkt->addPar("delayAlert") = par("errPercent").doubleValue();
+                        appPkt->addPar("campus") = "aux > 0";
                     } else {
                         appPkt->addPar("delayAlert") = -par("errPercent").doubleValue();
+                        appPkt->addPar("campus") = "aux < 0";
                     }
                     send(appPkt, "toApp");
                 } else if (prevPktTime != 0){
@@ -307,10 +314,12 @@ void TransportRx::handleMessage(cMessage *msg) {
                         cPacket *appPkt = new cPacket("app_packet");
                         appPkt->setKind(1);
                         appPkt->addPar("delayAlert") = -par("errPercent").doubleValue();
+                        appPkt->addPar("campus") = "outro";
                         send(appPkt, "toApp");
                     }
                 }
             }
+            countAvg();
             prevPktTime = pktTime;
             // Se actualiza tamaño de cola actual.
             bufferSizeVector.record(buffer.getLength());
@@ -328,7 +337,7 @@ void TransportRx::countAvg() {
     cPacket *del_pkt;
     simtime_t iaux, sum1 = 0;
     int length;
-    length = aux->getLength();
+    length = 0;
     while (!aux->isEmpty()) {
         del_pkt = (cPacket*) aux->pop();
         if (del_pkt->hasPar("delay")) {
