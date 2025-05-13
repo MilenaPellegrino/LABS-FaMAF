@@ -347,10 +347,10 @@ void TransportRx::handleMessage(cMessage *msg) {
                 // Solicita aumentar serviceTime
                 if (aux<0.75*par("bufferSize").intValue()) {
                     appPkt->addPar("delayAlert") = 
-                    par("errPercent").doubleValue();
+                    par("fixPercent").doubleValue();
                 } else {
                     appPkt->addPar("delayAlert") = 
-                    2*par("errPercent").doubleValue();
+                    2*par("fixPercent").doubleValue();
                 }
                 //appPkt->addPar("delayAlert") = aux.dbl();
                 // Campo de debuggeo
@@ -366,7 +366,7 @@ void TransportRx::handleMessage(cMessage *msg) {
                 // despejando aux se consigue lo sig:
                 aux = (delay - avgDelay)/avgDelay;
                 
-                if (aux > 0 || 
+                if (aux > par("errPercent").doubleValue() || 
                     aux < -par("errPercent").doubleValue()) {
                 // Si el porcentaje de diferencia es mayor al 
                 // modulo del error aceptado
@@ -379,7 +379,7 @@ void TransportRx::handleMessage(cMessage *msg) {
                         // Se guarda en el paquete el porcentaje 
                         // a solicitar subir.
                         appPkt->addPar("delayAlert") = 
-                        par("errPercent").doubleValue(); 
+                        aux.dbl(); 
                         //appPkt->addPar("delayAlert") = aux.dbl(); //199526
                         // Campo de debuggeo
                         appPkt->addPar("campus") = "aux > 0"; //199174
@@ -388,7 +388,7 @@ void TransportRx::handleMessage(cMessage *msg) {
                         // Se guarda en el paquete el porcentaje
                         // a solicitar bajar
                         appPkt->addPar("delayAlert") = 
-                        -par("errPercent").doubleValue();
+                        -aux.dbl();
                         //appPkt->addPar("delayAlert") = aux.dbl();
                         // Campo de debuggeo
                         appPkt->addPar("campus") = "aux < 0";
@@ -412,7 +412,7 @@ void TransportRx::handleMessage(cMessage *msg) {
                         // Se guarda en el paquete el porcentaje
                         // a solicitar bajar
                         appPkt->addPar("delayAlert") = 
-                        -par("errPercent").doubleValue();
+                        -par("fixPercent").doubleValue();
                         // Seteo campo de debuggeo
                         appPkt->addPar("campus") = "outro";
                         // Envio paquete.
