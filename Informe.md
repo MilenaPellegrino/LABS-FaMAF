@@ -184,7 +184,7 @@ En resumen, lo que queriamos estudiar es la perdida de paquetes, que como dijimo
 
 Nuestro siguiente objetivo, fue diseñar un sistema de control de flujo y congestión de tal manera que se pueda evitar la périda de datos por saturación de los buffers, algo que vimos que ocurre en nuestro experimento anterior. 
 
-Primeramente se modifico un poco el sistema de red. Ahora está formada de la siguiente manera 
+Primeramente se modifico un poco el sistema de red. Ahora está formada de la siguiente manera:
 
 |  |  |
 |----|----|
