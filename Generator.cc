@@ -10,6 +10,7 @@ class Generator : public cSimpleModule {
 private:
     cMessage *sendMsgEvent;
     cStdDev transmissionStats;
+    cOutVector packetGenVector;
 public:
     Generator();
     virtual ~Generator();
@@ -30,6 +31,7 @@ Generator::~Generator() {
 }
 
 void Generator::initialize() {
+    packetGenVector.setName("packetGen");
     transmissionStats.setName("TotalTransmissions");
     // create the send packet
     sendMsgEvent = new cMessage("sendEvent");
@@ -45,6 +47,7 @@ void Generator::handleMessage(cMessage *msg) {
     // create new packet
     cPacket *pkt;
     pkt = new cPacket("packet");
+    packetGenVector.record(1);
     pkt->setByteLength(par("packetByteSize").doubleValue());
     // Se pone con tipo 0
     pkt->setKind(0);

@@ -281,6 +281,8 @@ void TransportRx::initialize() {
 
 // Vacio por que?
 void TransportRx::finish() {
+    delays.clear();
+    delays.~cQueue();
 }
 
 // Funcion principal.
@@ -329,7 +331,7 @@ void TransportRx::handleMessage(cMessage *msg) {
             if (delays.getLength() >= par("delaySize").intValue()) {
             // Si la cola llego al limite
                 //Elimino primer elemento
-                auxPkt = delays.pop();
+                auxPkt = (cPacket *) delays.pop();
                 delete auxPkt;    
             } 
             // Guardo el paquete en delays.
@@ -433,6 +435,7 @@ void TransportRx::countAvg() {
         // si no existe no guarda nada
             sum += 0;
         }
+        delete(del_pkt);
     }
     //Se calcula el promedio en variable global
     avgDelay = sum / length;
