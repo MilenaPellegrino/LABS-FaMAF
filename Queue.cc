@@ -222,7 +222,8 @@ void TransportTx::handleMessage(cMessage *msg) {
             // Se modifica el serviceTime con respecto al porcentaje que
             // debe aumentar o bajar
             serviceTime += serviceTime*timeModifier.dbl();
-            // Se setea el ignore en 0 para ignorar los sig. paquetes.
+            // Se setea el ignore en 0 para ignorar los sig. paquetes
+            timeModifier = 0;
             ignore = 0;
         } else {
         // Si debemos ignorar el paquete
@@ -333,21 +334,42 @@ void TransportRx::handleMessage(cMessage *msg) {
                 //Elimino primer elemento
                 auxPkt = (cPacket *) delays.pop();
                 delete auxPkt;    
-            } 
+            }
             // Guardo el paquete en delays.
             delays.insert(del);
-            // Si delay y avgDelay no tienen sus valores iniciales
-            if (delay != 0 && avgDelay != 0) {
+            if (buffer.getLength() >= 0.5*par("bufferSize").intValue()) {
+            // Si el buffer esta al 50% de su caṕacidad o mayor
+                aux = buffer.getLength();
+                // Creamos paquete para enviar en la App
+                cPacket *appPkt = new cPacket("app_packet");
+                // Se setea su tipo en 1
+                appPkt->setKind(1);
+                // Solicita aumentar serviceTime
+                if (aux<0.75*par("bufferSize").intValue()) {
+                    appPkt->addPar("delayAlert") = 
+                    par("errPercent").doubleValue();
+                } else {
+                    appPkt->addPar("delayAlert") = 
+                    2*par("errPercent").doubleValue();
+                }
+                //appPkt->addPar("delayAlert") = aux.dbl();
+                // Campo de debuggeo
+                appPkt->addPar("campus") = "length > 50%bufferSize";
+                // Envio paquete.
+                send(appPkt, "toApp");
+
+            } else if (delay != 0 && avgDelay != 0) {
+            // Si delay y avgDelay son distintos a su valor inicial.
                 // Calculo el porcentaje de diferencia de delay en avgDelay
                 // Se busca que
                 // delay == avgDelay + avgDelay*aux
                 // despejando aux se consigue lo sig:
                 aux = (delay - avgDelay)/avgDelay;
                 
-                if (aux > par("errPercent") || 
+                if (aux > 0 || 
+                    aux < -par("errPercent").doubleValue()) {
                 // Si el porcentaje de diferencia es mayor al 
                 // modulo del error aceptado
-                    aux < -par("errPercent").doubleValue()) {
                     // Creamos paquete para enviar en la App
                     cPacket *appPkt = new cPacket("app_packet");
                     // Se setea su tipo en 1
@@ -365,7 +387,8 @@ void TransportRx::handleMessage(cMessage *msg) {
                     // Si el porcentaje de diferencia es negativo
                         // Se guarda en el paquete el porcentaje
                         // a solicitar bajar
-                        appPkt->addPar("delayAlert") = -par("errPercent").doubleValue();
+                        appPkt->addPar("delayAlert") = 
+                        -par("errPercent").doubleValue();
                         //appPkt->addPar("delayAlert") = aux.dbl();
                         // Campo de debuggeo
                         appPkt->addPar("campus") = "aux < 0";
@@ -375,10 +398,10 @@ void TransportRx::handleMessage(cMessage *msg) {
                 } else if (prevPktTime != 0){
                 // Si el porcentaje de dif entra dentro del error aceptado
                 // y el prevPktTime es distinto al valor inicial
-                    if (prevPktTime+delay*(1+par("errPercent").doubleValue())
+                    if (prevPktTime+delay*par("errPercent")
                         <= pktTime) {
                     //Si el tiempo de llegada del paquete anterior mas el
-                    //delay promedio es mayor al tiempo de llegada del paq.
+                    //delay es menor al tiempo de llegada del paq.
                     //actual.
                     //Quiere decir que el TransportTx envia paquetes mas lento
                     //de lo que puede
