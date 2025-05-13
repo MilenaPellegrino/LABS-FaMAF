@@ -232,8 +232,8 @@ En este gráfica analizamos la cantidad de pérdida de paquetes
 para el caso de estudio 1 y 2 por igual? ¿Por qué?**
 
 Nuestro acf analiza los delays de los paquetes llevando un promedio de los ultimos n paquetes, de esta manera puede determinar si el último paquete recibido demoro notablemente mas o menos que el promedio de los anteriores n paquetes:
-Si es el caso entonces se envía al transportRx un porcentaje de aumento o decremento de serviceTime mediante un paquete.
-Cuando transportRx recibe dicho paquete puede ignorarlo (si recientemente acepto uno de estos paquetes) o aceptarlo.
+Si es el caso entonces se envía al transportTx un porcentaje de aumento o decremento de serviceTime mediante un paquete.
+Cuando transportTx recibe dicho paquete puede ignorarlo (si recientemente acepto uno de estos paquetes) o aceptarlo.
 Si lo acepta entonces suma el porcentaje solicitado a un campo de su clase llamado timeModifier el cual luego se multiplica por el serviceTime.
 De esta manera modificando la cadencia de paquetes enviados.
 
