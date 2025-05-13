@@ -34,11 +34,20 @@ El visual de bitbucket para MarkDown, no es el mejor, recomendamos verlo en otro
   - Madero Ismael
   - Pellegrino Milena
 
-## Índice
+## Índice 
 
 1. [Introducción](#introducción)
 2. [Experimento 1](#experimento-1)
+   - [Caso de estudio 1](#caso-de-estudio-1)
+   - [Caso de estudio 2](#caso-de-estudio-2)
+   - [Análisis](#análisis)
+   - [Preguntas](#preguntas)
 3. [Experimento 2](#experimento-2)
+   - [Algoritmo implementado](#algoritmo-implementado)
+   - [Caso de estudio 1](#caso-de-estudio-1-1)
+   - [Caso de estudio 2](#caso-de-estudio-2-1)
+   - [Preguntas](#preguntas-1)
+
 4. [Conclusiones](#conclusiones)
 5. [Referencias](#referencias)
 6. [Anexo](#anexo)
@@ -106,57 +115,116 @@ Primeramente recordemos la tasa de datos para este caso de estudio:
 - `queue.out --> { datarate = 0.5Mbps; } --> sink.in;` es decir, nuestra tasa de datos, desde el nodo intermedio hacia el sink es de 0.5Mbps
 - `queue.out --> { datarate = 0.5Mbps; } --> nodeRx.in;` 
 
-Para poder analizar este caso de estudio, se hicieron diferentes graficas, a partir de los datos extraidos en las simulaciones con los parametros establecidos anteriormente.
-
-| Imagen | Descripción |
-|--------|-------------|
-| ![Buffer en tiempo](img/buffer_tiempo.png) | Llenada de buffer de queue. Este nodo tiene la mitad del datarate, sube linealmente hasta el máximo y luego se mantiene. Siempre tiene 200, saca uno y entra uno. |
-| ![Evolución del buffer](img/buffer_tam.png) | Tamaño del buffer del nodeTx. Se explica como evoluciona el tamaño del buffer a lo largo del tiempo. |
-| ![Buffers y descartados](img/buffer_y_descartes.png) | Cómo afecta el tamaño del buffer a la cantidad de paquetes descartados. |
-| ![Estado final](img/estado_final.png) | Muestra la distribución final de los paquetes en los distintos tipos de buffers.  |
-| ![generados usados y perdidos](img/gen_us_per.png) | Presenta los datos normalizados (dividido entre 200) sobre paquetes generados, usados y perdidos en nuestra red. |
-| ![paquetes descartados en tiempo](img/paquetes_descartado_tiempo.png) | Muestra la cantidad de paquetes descartados en el tiempo.|
-| ![promedio de buffer descartados](img/promedio_buffer_descartado.png) | Muestra la cantidad de paquetes generados, (cuantos se usaron y cuantos se generaron).  |
-| ![utilizados vs generados](img/utilizados_vs_generador.png) | Mostramos como la proporción de paquetes usados vs generados y su evolución en el tiempo.|
-
-
 ## Caso de estudio 2
 Primeramente recordemos la tasa de datos para este caso de estudio:
 - `queue.out --> { datarate = 1Mbps; } --> sink.in;` es decir, nuestra tasa de datos es de 1Mbps, el doble que el caso de estudio 1. 
 - `queue.out --> { datarate = 0.5Mbps; delay = 100us; } --> nodeRx.in;`, es decir, es la misma tasa de datos (0.5 Mbps) del caso de estudio 1, pero ahora se agrega un retardo de 100 µs en la transmisión hacia NodeRx
 
 
-Para poder analizar este caso de estudio, se hicieron diferentes graficas, a partir de los datos extraidos en las simulaciones con los parametros establecidos anteriormente.
+## Analisís
+Para poder analizar este caso de estudio, se hicieron diferentes graficas, a partir de los datos extraidos en las simulaciones con los parametros establecidos anteriormente; además para cada caso se tomaron las medidas con intervalos de generación de: 0.1, 0.15, 0.25, 0.39 y 1. 
 
+### Tamaño de buffers
+| Caso | 0.1 | 0.15 | 0.25 | 0.39 | 1   |
+|----|----|----|----|----|----|
+| 1 | ![](img/CASO_ESTUDIO_1/(0.1)/buffers.png) | ![](img/CASO_ESTUDIO_1/(0.15)/buffers.png) | ![](img/CASO_ESTUDIO_1/(0.25)/buffers.png) | ![](img/CASO_ESTUDIO_1/(0.39)/buffers.png) | ![](img/CASO_ESTUDIO_1/(1)/buffers.png) |
+| 2 | ![](img/CASO_ESTUDIO_2/(0.1)/buffers.png) | ![](img/CASO_ESTUDIO_2/(0.15)/buffers.png) | ![](img/CASO_ESTUDIO_2/(0.25)/buffers.png) | ![](img/CASO_ESTUDIO_2/(0.39)/buffers.png) | ![](img/CASO_ESTUDIO_2/(1)/buffers.png) |
 
-| ![Buffer en tiempo](img/buffer_tiempo.png) | ![Evolución del buffer](img/buffer_tam.png) | ![Buffers y descartados](img/buffer_y_descartes.png) | ![Estado final](img/estado_final.png) |
-|-----------|-----------|-----------|-----------|
-| ![generados usados y perdidos](img/gen_us_per.png)   | ![paquetes descartados en tiempo](img/paquetes_descartado_tiempo.png)  | ![promedio de buffer descartados](img/promedio_buffer_descartado.png)  | ![utilizados vs generados](img/utilizados_vs_generador.png) |
+### Carga útil vs carga ofrecida 
+| Caso | 0.1 | 0.15 | 0.25 | 0.39 | 1   |
+|----|----|----|----|----|----|
+| 1 | ![](img/CASO_ESTUDIO_1/(0.1)/útil_vs_ofrecida.png) | ![](img/CASO_ESTUDIO_1/(0.15)/útil_vs_ofrecida.png) | ![](img/CASO_ESTUDIO_1/(0.25)/útil_vs_ofrecida.png) | ![](img/CASO_ESTUDIO_1/(0.39)/útil_vs_ofrecida.png) | ![](img/CASO_ESTUDIO_1/(1)/útil_vs_ofrecida.png) |
+| 2 | ![](img/CASO_ESTUDIO_2/(0.1)/útil_vs_ofrecida.png) | ![](img/CASO_ESTUDIO_2/(0.15)/útil_vs_ofrecida.png) | ![](img/CASO_ESTUDIO_2/(0.25)/útil_vs_ofrecida.png) | ![](img/CASO_ESTUDIO_2/(0.39)/útil_vs_ofrecida.png) | ![](img/CASO_ESTUDIO_2/(1)/útil_vs_ofrecida.png) |
+
+| Caso |  |
+|----|----|
+| 1 | ![](img/CASO_ESTUDIO_1/útil_vs_ofrecida_1.png) | 
+| 2 | ![](img/CASO_ESTUDIO_2/útil_vs_ofrecida_2.png) |
+
+### Pérdida de paquetes en queue
+En este gráfica analizamos la relación entre el tamaño del buffer de la cola y los descartes
+| Caso | 0.1 | 0.15 | 0.25 | 0.39 | 1   |
+|----|----|----|----|----|----|
+| 1 | ![](img/CASO_ESTUDIO_1/(0.1)/pérdida_con_queue.png) | ![](img/CASO_ESTUDIO_1/(0.15)/pérdida_con_queue.png) |  |  |  |
+| 2 | ![](img/CASO_ESTUDIO_2/(0.1)/pérdida_con_queue.png) | ![](img/CASO_ESTUDIO_2/(0.15)/pérdida_con_queue.png) |  |  |  |
+
+### Pérdida de paquetes 
+En este gráfica analizamos la cantidad de pérdida de paquetes a través del tiempo.
+| Caso | 0.1 | 0.15 | 0.25 | 0.39 | 1   |
+|----|----|----|----|----|----|
+| 1 | ![](img/CASO_ESTUDIO_1/(0.1)/pérdida_de_paquetes.png) | ![](img/CASO_ESTUDIO_1/(0.15)/pérdida_de_paquetes.png) |  |  |  |
+| 2 | ![](img/CASO_ESTUDIO_2/(0.1)/pérdida_de_paquetes.png) | ![](img/CASO_ESTUDIO_2/(0.15)/pérdida_de_paquetes.png) |  |  |  |
+
+### Pérdida de paquetes 
+En este gráfica analizamos la relación acumulativa entre los paquetes utilizados contra los paquetes generados
+| Caso | 0.1 | 0.15 | 0.25 | 0.39 | 1   |
+|----|----|----|----|----|----|
+| 1 | ![](img/CASO_ESTUDIO_1/(0.1)/relación_paquetes_gen_vs_used.png) | ![](img/CASO_ESTUDIO_1/(0.15)/relación_paquetes_gen_vs_used.png) |  |  |  |
+| 2 | ![](img/CASO_ESTUDIO_2/(0.1)/relación_paquetes_gen_vs_used.png) | ![](img/CASO_ESTUDIO_2/(0.15)/relación_paquetes_gen_vs_used.png) |  |  |  |
 
 
 ## Preguntas
 
 **¿Qué diferencia observa entre el caso de estudio 1 y 2? ¿Cuál es la fuente limitante en cada uno? Investigue sobre la diferencia entre control de flujo y control de congestión (ver Figura 6-22 del libro Tanenbaum).**
 
-Recordemos que la imagen del Tanenbaum es esta: 
+Después de hacer las mediciones y analizar cada caso, podemos ver que no hay mucha diferencia entre el caso 1 y el caso 2; esto es algo que podiamos intuir ya que en ambos casos nuestro sistema de red que se usa es practicamentela misma, con un cambio minimo en el cuello de botella. 
 
-![imagen del tanenmbaum](img/tanenbaum_6-22.PNG)
+Luego observando la gráfica de tamaño de buffer, junto con los de pérdidas de paquetes, podemos encontrar una relación que cuando el buffer se llena se empiezan a perder paquetes, esto ocurre así porque la red no le queda otro camino, tiene los buffers llenos y no tiene otro camino para mandar los paquetes, entonces no le queda otra opción que descartarlos. 
 
+También obersamos que la perdida de paquetes a lo largo del tiempo tiene una forma lineal, en el caso del intervalo de generación 0.1 y más o menos lineal en los demás, esto ocurre porque nuestra simulación es sin eventos fluctuantes, cuando se llena el buffer, se empiezan a perder los paquetes linealmente. 
+
+Luego viendo los diferentes cambios entre los intervalo de generación que nosotros elegimos para el analisis, podemos ver como  "mejoran" (con mejorar nos referimos a que tienen menos paquetes pérdidos y menor delay entre los envíos.) En las gráficas observamos que a partir del 0.25 se dejaban de perder significativamente paquetes. 
+
+(la pregunta de la diferencia entre control de flujo y control de congestión fue respondida en la parte introductorio del informe.)
+
+En resumen, lo que queriamos estudiar es la perdida de paquetes, que como dijimos anteriormente se puede dar por problema de flujo o problema de congestión. En nuestro caso de estudio 1, si observamos el nodeRx, como si fuera el receptor de la transferencai de paquetes, la pérdida ocurre en esa instancia, por lo que lo catalogaríamos como un problema de flujo; en cambio, en nuestro caso de estudio 2, nuestra queue del medio tiene una tasa de transferencia más chica en el out que en el in, por lo tanto el gate in causa una pérdida de paquetes un poco antes de entrar al nodeRx, aunque esta diferencia es muy sutil. 
 
 # Experimento 2
 
-bla bla bla, contar las cosas de como disenamos, etc..
+Nuestro siguiente objetivo, fue diseñar un sistema de control de flujo y congestión de tal manera que se pueda evitar la périda de datos por saturación de los buffers, algo que vimos que ocurre en nuestro experimento anterior. 
 
-## Caso de estudio 1
+Primeramente se modifico un poco el sistema de red. Ahora está formada de la siguiente manera 
 
-explicacion graficos y toda la bola del experimento 1 
+|  |  |
+|----|----|
+| ![](img/General_Network_Diseno.png) | **Nuestra red principal:**<br><br>- **nodeTx**: Nodo transmisor que conecta hacia dos colas:<br>  - Envía paquetes a `queue` (red principal)<br>  - Recibe desde `trqueue`<br><br>- **queue**: Cola intermedia entre nodeTx y nodeRx:<br>  - Simula la red principal <br><br>- **trqueue**: Cola paralela para control de trafico:<br>  - La necesitamos para enviar paquetes entre `nodeRx` y `nodeTx` <br><br>- **nodeRx**: Nodo receptor:<br>  - gracias a la `trqueue` puede "vovler hacia atras" | | 
+| ![](img/General_NodeRx_Diseno.png) | **Nodo receptor:**<br><br>- **traRx**: Cola de recepción, donde se van almacenando los paquetes que entran. <br><br>- **sink**: Destino final de esos paquetes, como si fuera el recolector de los paquetes entrantes. | | 
+| ![](img/General_NodeTx_Diseno.png) | **Nodo transmisor:**<br><br>- **traRx**: Cola de recepción, donde se van almacenando los paquetes que entran. <br><br>- **gen**: Generador de paquetes, crea los paquetes que se enviarán. | | 
 
-## Caso de estudio 2
-explicacion graficos y toda la bola del experimento 2
+
+
+## Algoritmo implementado 
+
+## Caso de estudio 1 y caso de estudio 2 
+
+Obviamente los casos de estudio son utilizando los mismo parametros que en el los casos de estudios anteriores. 
+
+Observemos y analizemos las simulaciones: 
+
+### Tamaño de buffers
+| Caso | 0.1 | 0.15 | 0.25 | 0.39 | 1   |
+|----|----|----|----|----|----|
+| 1 | ![](img/DISEÑO/CASO_1_(DISEÑO)/(0.1)/buffers.png) | ![](img/DISEÑO/CASO_1_(DISEÑO)/(0.15)/buffers.png) | ![](img/DISEÑO/CASO_1_(DISEÑO)/(0.25)/buffers.png) | ![](img/DISEÑO/CASO_1_(DISEÑO)/(0.39)/buffers.png) | ![](img/DISEÑO/CASO_1_(DISEÑO)/(1)/buffers.png) |
+| 2 | ![](img/DISEÑO/CASO_2_(DISEÑO)/(0.1)/buffers.png) | ![](img/DISEÑO/CASO_2_(DISEÑO)/(0.15)/buffers.png) | ![](img/DISEÑO/CASO_2_(DISEÑO)/(0.25)/buffers.png) | ![](img/DISEÑO/CASO_2_(DISEÑO)/(0.39)/buffers.png) | ![](img/DISEÑO/CASO_2_(DISEÑO)/(1)/buffers.png) |
+
+
+
+### Carga útil vs carga ofrecida
+En este gráfica analizamos la cantidad de pérdida de paquetes
+| Caso | 0.1 | 0.15 | 0.25 | 0.39 | 1   |
+|----|----|----|----|----|----|
+| 1 | ![](img/DISEÑO/CASO_1_(DISEÑO)/(0.1)/útil_vs_ofrecida.png) | ![](img/DISEÑO/CASO_1_(DISEÑO)/(0.15)/útil_vs_ofrecida.png) | ![](img/DISEÑO/CASO_1_(DISEÑO)/(0.25)/útil_vs_ofrecida.png) | ![](img/DISEÑO/CASO_1_(DISEÑO)/(0.39)/útil_vs_ofrecida.png) | ![](img/DISEÑO/CASO_1_(DISEÑO)/(1)/útil_vs_ofrecida.png) |
+| 2 | ![](img/DISEÑO/CASO_2_(DISEÑO)/(0.1)/útil_vs_ofrecido.png) | ![](img/DISEÑO/CASO_2_(DISEÑO)/(0.15)/útil_vs_ofrecida.png) | ![](img/DISEÑO/CASO_2_(DISEÑO)/(0.25)/útil_vs_ofrecida.png) | ![](img/DISEÑO/CASO_2_(DISEÑO)/(0.39)/útil_vs_ofrecida.png) | ![](img/DISEÑO/CASO_2_(DISEÑO)/(1)/útil_vs_ofrecida.png) |
+
+| Caso |  |
+|----|----|
+| 1 | ![](img/DISEÑO/CASO_1_(DISEÑO)/útil_vs_ofrecida.png) | 
+| 2 | ![](img/DISEÑO/CASO_2_(DISEÑO)/útil_vs_ofrecida.png) |
 
 ## Preguntas
 
-respuesta de la pregunta que esta en el informe
+**¿Cómo cree que se comporta su algoritmo de control de flujo y congestión4? ¿Funciona
+para el caso de estudio 1 y 2 por igual? ¿Por qué?**
 
 ## Conclusiones
 
@@ -170,7 +238,9 @@ escribir una conclusion o algo asi
 - [Introducción a Omnet++ y c++ (video)](https://www.youtube.com/watch?v=hgRW5rK-CDE&t=1616s)
 - [Graficas en Omnet++ con Python y Notebooks](https://www.youtube.com/watch?v=yL1gf04E2_E)
 - [Curva de Carga Ofrecida vs Carga Util](https://www.youtube.com/watch?v=W8r8zSPjeAs)
+- [Graficar en google colab](https://colab.research.google.com/drive/1wOr1jP7-s076qyJl7gxgQ63cqiEYJ8g0?usp=sharing)
 - [Estructura de un informe](https://www.youtube.com/watch?v=yq8zjLZABe0)
+
 
 Cabe aclarar que vimos el video sobre la estructura del informe, pero solo incluimos algunos apartados como abstract, referencias, introducción. Para los otros nos tomamos la libertad de divididir el informe en secciones de exp1 y exp2 y luego un apartado de conclusiones general. (en el video se proponia que en la introducción pongamos el análisis de los problemas en el caso1 y caso2, en una sección método se explique la tarea de diseño, etc; nosotros decidimos hacerlo de esta manera ya que nos parecio un poco mas prolijo y mas ordenado a la hora en la que alguien lo tenga que leer; igualmente tenemos en cuenta que esto puede ser subjetivo y podriamos haber seguido la alineación propuesta por la catedra). 
 
@@ -200,3 +270,5 @@ Hemos utilizado diferentes herramientas de Inteligencia Artificial a lo largo de
       - **Prompt**: Porfavor, podrías explicarme este error: [insertabamos el error] ejemplo: `AttributeError: 'float' object has no attribute 'split' `
       - **Respuesta**: *The error message AttributeError: 'float' object has no attribute 'split' indicates that you are trying to apply the split() method to a float object, but this method is only available for strings. This is happening because time_gen, time_queue, time_sink, buffer_gen, buffer_queue, and buffer_sink variables are already lists of floats based on the Global variables provided. The line of code time_gen[0].split() tries to access the first element of time_gen, which is a float, and then apply the split() method to it. Since floats don't have a split() method, this causes an AttributeError.*
       - **Verificación**: La verificación era hacer lo que nos decía y ver si tenía razón. Cabe aclarar que para la mayoría no era 100% correcto, pero nos tiraba una idea de cual era el problema del error y pensando un poco se solucionaba. 
+
+3. Utilización de [Copilot](https://copilot.microsoft.com), lo usamos para escribir el informe, ya que utlizamos chatGPT para tratar de hacer items dentro de tablas, pero al explicarme lo que queriamos chatGPT no entendia, por lo tanto le pasamos la tabla en la que queriamos hacer items alado, pero lo que hizo chatGPT fue reescribir todo lo que nosotro s escribimos, utilizando otros datos y cosas que no eran correcta para nuestro proyecto, por lo tanto decidimos utilizar copilot, el cual no reescribio la respuesta y solo nos explico como hacer, ya que utilizaba html.
