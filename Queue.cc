@@ -319,7 +319,7 @@ void TransportRx::handleMessage(cMessage *msg) {
             buffer.insert(msg);
 
             // Se crea un paquete para guardar en cola delays.
-            cPacket *del = new cPacket("del_packet"), *pkt = (cPacket*) msg;
+            cPacket *auxPkt, *del = new cPacket("del_packet"), *pkt = (cPacket*) msg;
             // Se calcula el delay del paquete recibido
             delay = pktTime - pkt->par("traTxTime").doubleValue();
             // Se guarda el delay en el paquete que se guardara en delays.
@@ -329,8 +329,9 @@ void TransportRx::handleMessage(cMessage *msg) {
             if (delays.getLength() >= par("delaySize").intValue()) {
             // Si la cola llego al limite
                 //Elimino primer elemento
-                delays.pop();    
-            }
+                auxPkt = delays.pop();
+                delete auxPkt;    
+            } 
             // Guardo el paquete en delays.
             delays.insert(del);
             // Si delay y avgDelay no tienen sus valores iniciales
