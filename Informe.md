@@ -237,7 +237,9 @@ Cuando transportTx recibe dicho paquete puede ignorarlo (si recientemente acepto
 Si lo acepta entonces suma el porcentaje solicitado a un campo de su clase llamado timeModifier el cual luego se multiplica por el serviceTime.
 De esta manera modificando la cadencia de paquetes enviados.
 
-Utilizando las mismas justificaciones del experimento 1 no se encuentran grandes diferencias entre el caso de estudio 1 y el caso de estudio 2.
+Utilizando las mismas justificaciones del experimento 1 y analizando las graficas, no se encuentran grandes diferencias entre el caso de estudio 1 y el caso de estudio 2.
+
+Cabe aclarar que en nuestra simulación no se modeló la caída de red, por lo que los paquetes que no llegaron al nodo receptor al finalizar la simulación no se consideran pérdidos, sino simplemente no se contabilizan por haber quedado en transito, pero no fueron dropeados, ya que nunca se llego a llenar el buffer, esto es así ya que nuestra simulación tiene un tiempo limitado, por este motivo se ven así las graficas. 
 
 ## Conclusiones
 
