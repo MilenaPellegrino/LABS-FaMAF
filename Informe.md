@@ -27,6 +27,7 @@ Prestenar el problema a trabajar, de que manera la trabajamos, pequena idea de s
 
 
 El visual de bitbucket para MarkDown, no es el mejor, recomendamos verlo en otro lugar. 
+Lo que se recomienda es utilizar pandoc y pasarlo a pdf, ya que escribimos un titulo que sin un convertidor como latex o pandoc no se puede observar, para hacerlo hay que descargarlo nuestro archivo .m (junto con la carpeta de las imagenes),y ejecutar: `pandoc Informe.md -o informe.pdf --pdf-engine=xelatex` por comodidad tambien lo dejamos en el repositorio. 
 
 ## Integrantes
   - Guerrero Diego
@@ -194,6 +195,10 @@ Primeramente se modifico un poco el sistema de red. Ahora está formada de la si
 
 
 ## Algoritmo implementado 
+Nuestro algoritmo lo que hace es que el transportRx guarda en una cola los ultimos delaySize(.ini) delays y los va promediando.
+Lo que hacemos es agarrar el delay actual y calcular la diferencia de porcentaje entre el delay contra el promedio de delays si este porcentaje es mayor al modulo de un errPercent(.ini), si se da entonces envia un mensaje de solicitud de modificación de serviceTime del nodo transportTx.
+transportTx esta programado para ignorar una cantidad ignore (.ini) de paquetes luego de recibir uno, esto porque hasta que se actualice la cola de delays va a tardar lo suyo.
+
 
 ## Caso de estudio 1 y caso de estudio 2 
 
@@ -226,9 +231,17 @@ En este gráfica analizamos la cantidad de pérdida de paquetes
 **¿Cómo cree que se comporta su algoritmo de control de flujo y congestión4? ¿Funciona
 para el caso de estudio 1 y 2 por igual? ¿Por qué?**
 
+Nuestro acf analiza los delays de los paquetes llevando un promedio de los ultimos n paquetes, de esta manera puede determinar si el último paquete recibido demoro notablemente mas o menos que el promedio de los anteriores n paquetes:
+Si es el caso entonces se envía al transportRx un porcentaje de aumento o decremento de serviceTime mediante un paquete.
+Cuando transportRx recibe dicho paquete puede ignorarlo (si recientemente acepto uno de estos paquetes) o aceptarlo.
+Si lo acepta entonces suma el porcentaje solicitado a un campo de su clase llamado timeModifier el cual luego se multiplica por el serviceTime.
+De esta manera modificando la cadencia de paquetes enviados.
+
+Utilizando las mismas justificaciones del experimento 1 no se encuentran grandes diferencias entre el caso de estudio 1 y el caso de estudio 2.
+
 ## Conclusiones
 
-escribir una conclusion o algo asi
+Logramos hacer un acf para poder solucionar el problema de control de flujo y control de congestión, aunque no es perfecto y hay varios aspectos que se pueden mejorar, por ejemplo viendo cuales seria los parametros ideales para diferentes tipos de red, o modificarlo para que no haya tanto delay entre paquetes, ademas de tratar de llevar al maximo la capacidad de la red, en la que nosotros hicimos las simulaciones y realizamos estos algoritmos capaz no se ve tan afectada, pero en redes mas grandes los cambios serian significativos. 
 
 ## Referencias
 
@@ -245,6 +258,8 @@ escribir una conclusion o algo asi
 Cabe aclarar que vimos el video sobre la estructura del informe, pero solo incluimos algunos apartados como abstract, referencias, introducción. Para los otros nos tomamos la libertad de divididir el informe en secciones de exp1 y exp2 y luego un apartado de conclusiones general. (en el video se proponia que en la introducción pongamos el análisis de los problemas en el caso1 y caso2, en una sección método se explique la tarea de diseño, etc; nosotros decidimos hacerlo de esta manera ya que nos parecio un poco mas prolijo y mas ordenado a la hora en la que alguien lo tenga que leer; igualmente tenemos en cuenta que esto puede ser subjetivo y podriamos haber seguido la alineación propuesta por la catedra). 
 
 ## Anexo
+
+Creemos pertinente aclarar que al no tener el tiempo deseado para la realización del lab, para la última parte del laboratorio nos organizamos dividiendo las tareas principales, siempre comunicandonos y entendiendo en cada momento lo que hacia el otro compañero. @IsmaelMadero se encargo de programar el diseño de nuestro algoritmo, @JuanPGonzalez fue el encargado de realizar las simulaciones y realizar las graficas (algo que capaz no se vea en el historial de commits), @MilenaPellegrino, se encargo de realizar el informe y analizar las graficas y @DiegoGuerrero se encargo de debuggear. A su vez hicimos mucho pairprogramming, tanto en las clases presenciales como remotamente.
 
 Hemos utilizado diferentes herramientas de Inteligencia Artificial a lo largo del laboratorio, en diferentes ocasiones y usos. 
 
