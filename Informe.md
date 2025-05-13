@@ -195,9 +195,11 @@ Primeramente se modifico un poco el sistema de red. Ahora está formada de la si
 
 
 ## Algoritmo implementado 
-Nuestro algoritmo lo que hace es que el transportRx guarda en una cola los ultimos delaySize(.ini) delays y los va promediando.
+Nuestro algoritmo lo que hace es que el transportRx guarda en una cola los ultimos delaySize(.ini) delays y los va promediando. Siendo el delay el tiempo que tarda un paquete en llegar.
 Lo que hacemos es agarrar el delay actual y calcular la diferencia de porcentaje entre el delay contra el promedio de delays si este porcentaje es mayor al modulo de un errPercent(.ini), si se da entonces envia un mensaje de solicitud de modificación de serviceTime del nodo transportTx.
-transportTx esta programado para ignorar una cantidad ignore (.ini) de paquetes luego de recibir uno, esto porque hasta que se actualice la cola de delays va a tardar lo suyo.
+transportTx esta programado para ignorar una cantidad ignore (.ini) de paquetes luego de recibir uno, esto para darle tiempo a la cola de delays para recibir el cambio.
+Tambien se considera la carga de la cola en transportRx, si esta carga supera el 50% entonces se empieza a solicitar aumentar el serviceTime, a partir del 75% se solicita un aumento mayor.
+A mayor serviceTime menor envio de paquetes, y visceversa.
 
 
 ## Caso de estudio 1 y caso de estudio 2 
@@ -228,14 +230,16 @@ En este gráfica analizamos la cantidad de pérdida de paquetes
 
 ## Preguntas
 
-**¿Cómo cree que se comporta su algoritmo de control de flujo y congestión4? ¿Funciona
+**¿Cómo cree que se comporta su algoritmo de control de flujo y congestión? ¿Funciona
 para el caso de estudio 1 y 2 por igual? ¿Por qué?**
 
-Nuestro acf analiza los delays de los paquetes llevando un promedio de los ultimos n paquetes, de esta manera puede determinar si el último paquete recibido demoro notablemente mas o menos que el promedio de los anteriores n paquetes:
+Nuestro acf analiza los delays y el tamaño de la cola actual de los paquetes llevando un promedio de los ultimos n paquetes, de esta manera puede determinar si el último paquete recibido demoro notablemente mas o menos que el promedio de los anteriores n paquetes:
 Si es el caso entonces se envía al transportTx un porcentaje de aumento o decremento de serviceTime mediante un paquete.
 Cuando transportTx recibe dicho paquete puede ignorarlo (si recientemente acepto uno de estos paquetes) o aceptarlo.
 Si lo acepta entonces suma el porcentaje solicitado a un campo de su clase llamado timeModifier el cual luego se multiplica por el serviceTime.
 De esta manera modificando la cadencia de paquetes enviados.
+Si la cola supera el 50% de su capacidad entonces se solicita aumentar el serviceTime,
+a partir del 75% se solicita un aumento mayor.
 
 Utilizando las mismas justificaciones del experimento 1 y analizando las graficas, no se encuentran grandes diferencias entre el caso de estudio 1 y el caso de estudio 2.
 
@@ -288,4 +292,6 @@ Hemos utilizado diferentes herramientas de Inteligencia Artificial a lo largo de
       - **Respuesta**: *The error message AttributeError: 'float' object has no attribute 'split' indicates that you are trying to apply the split() method to a float object, but this method is only available for strings. This is happening because time_gen, time_queue, time_sink, buffer_gen, buffer_queue, and buffer_sink variables are already lists of floats based on the Global variables provided. The line of code time_gen[0].split() tries to access the first element of time_gen, which is a float, and then apply the split() method to it. Since floats don't have a split() method, this causes an AttributeError.*
       - **Verificación**: La verificación era hacer lo que nos decía y ver si tenía razón. Cabe aclarar que para la mayoría no era 100% correcto, pero nos tiraba una idea de cual era el problema del error y pensando un poco se solucionaba. 
 
-3. Utilización de [Copilot](https://copilot.microsoft.com), lo usamos para escribir el informe, ya que utlizamos chatGPT para tratar de hacer items dentro de tablas, pero al explicarme lo que queriamos chatGPT no entendia, por lo tanto le pasamos la tabla en la que queriamos hacer items alado, pero lo que hizo chatGPT fue reescribir todo lo que nosotro s escribimos, utilizando otros datos y cosas que no eran correcta para nuestro proyecto, por lo tanto decidimos utilizar copilot, el cual no reescribio la respuesta y solo nos explico como hacer, ya que utilizaba html.
+3. Utilización de [Copilot](https://copilot.microsoft.com), lo usamos para ayudar a entender el uso de omnet, su api, y escribir el informe, ya que utlizamos chatGPT para tratar de hacer items dentro de tablas, pero al explicarme lo que queriamos chatGPT no entendia, por lo tanto le pasamos la tabla en la que queriamos hacer items alado, pero lo que hizo chatGPT fue reescribir todo lo que nosotro s escribimos, utilizando otros datos y cosas que no eran correcta para nuestro proyecto, por lo tanto decidimos utilizar copilot, el cual no reescribio la respuesta y solo nos explico como hacer, ya que utilizaba html.
+
+4. Para generar los graficos diseñamos los sig. collab: [collab1](https://colab.research.google.com/drive/11wPcsbCHXCb6m4MKVD2ZL-uIp7g1HHRk?usp=sharing) [collab2](https://colab.research.google.com/drive/1y33KRowZq4ETeDTn_lkMynO0gZYS60Kb?authuser=0#scrollTo=l_6Hjlbh1z46)
