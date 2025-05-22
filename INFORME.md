@@ -36,7 +36,20 @@ Analizando dicha red podemos observar que su flujo de trabajo es el siguiente:
 - Todos los paquetes son enviados en sentido de las agujas del reloj.<br>
 Esto quiere decir que en la red dada Node[0] envia a Node[7] y todos los demas nodos envian al nodo con numero mas chico.
 
-Ejemplo de ejecucion (Paquetes rojos producidos por Node[0] y azules por Node[2]):<br>
-![Sample](img/Sample.gif)
+Ejemplo de ejecucion:<br>A la izq ejecucion del Node[0], a la derecha ejecucion de red, notar que estos ejemplos no son sincrónicos.<br>Los paquetes rojos son producidos por Node[0] y los azules por Node[2]:<br>
+![Sample1](img/Sample1.gif) ![Sample](img/Sample.gif)
 
-Ejecutando esta red durante 200 segundos podemos ver la carga de colas:
+Ejecutando esta red durante 200 segundos podemos ver la sig. cantidad de paquetes que pasaron por alguna cola de salida:<br>
+![Buffers](img/Buffers.png)
+
+Puede apreciarse: 
+1. La ausencia de las colas de Node[3], Node[4], y Node[5].
+2. Node[2] y Node[1] son los que menor carga tienen.
+3. Node[0] es el de mayor carga.
+4. Node[7] y Node[6] poseen misma carga
+
+Razonamiento:
+1. Esto se debe a que no se envian paquetes por dichos nodos.
+2. Solo envian paquetes producidos por Node[2].
+3. Envia tanto los paquetes recibidos como los generados.
+4. Enian paquetes producidos por Node[0] y Node[2].
