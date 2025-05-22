@@ -1,0 +1,6 @@
+,runID,module,name,value,configname,datetime,datetimef,experiment,inifile,iterationvars,iterationvarsd,iterationvarsf,measurement,network,processid,repetition,replication,resultdir,runnumber,seedset,unit
+0,General-0-20250522-15:52:53-9504,Network.node[0].lnk[0],Buffer Size:count,586.0,General,20250522-15:52:53,20250522-155253,General,omnetpp.ini,,,,,Network,9504,0,#0,results,0,0,
+1,General-0-20250522-15:52:53-9504,Network.node[2].lnk[0],Buffer Size:count,377.0,General,20250522-15:52:53,20250522-155253,General,omnetpp.ini,,,,,Network,9504,0,#0,results,0,0,
+2,General-0-20250522-15:52:53-9504,Network.node[7].lnk[0],Buffer Size:count,396.0,General,20250522-15:52:53,20250522-155253,General,omnetpp.ini,,,,,Network,9504,0,#0,results,0,0,
+3,General-0-20250522-15:52:53-9504,Network.node[1].lnk[0],Buffer Size:count,374.0,General,20250522-15:52:53,20250522-155253,General,omnetpp.ini,,,,,Network,9504,0,#0,results,0,0,
+4,General-0-20250522-15:52:53-9504,Network.node[6].lnk[0],Buffer Size:count,394.0,General,20250522-15:52:53,20250522-155253,General,omnetpp.ini,,,,,Network,9504,0,#0,results,0,0,

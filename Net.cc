@@ -9,7 +9,7 @@ using namespace omnetpp;
 
 class Net: public cSimpleModule {
 private:
-
+    cOutVector chargeVector;
 public:
     Net();
     virtual ~Net();
@@ -30,15 +30,18 @@ Net::~Net() {
 }
 
 void Net::initialize() {
+    chargeVector.setName("charge");
 }
 
 void Net::finish() {
+    recordScalar("charge", chargeVector.getValuesReceived());
 }
 
 void Net::handleMessage(cMessage *msg) {
 
     // All msg (events) on net are packets
     Packet *pkt = (Packet *) msg;
+    chargeVector.record(1);
 
     // If this node is the final destination, send to App
     if (pkt->getDestination() == this->getParentModule()->getIndex()) {
@@ -46,9 +49,12 @@ void Net::handleMessage(cMessage *msg) {
     }
     // If not, forward the packet to some else... to who?
     else {
+        long jumps = msg->par("Jumps").longValue();
+        jumps++;
         // We send to link interface #0, which is the
         // one connected to the clockwise side of the ring
         // Is this the best choice? are there others?
+        msg->par("Jumps").setLongValue(jumps);
         send(msg, "toLnk$o", 0);
     }
 }

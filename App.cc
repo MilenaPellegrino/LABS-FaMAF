@@ -12,6 +12,7 @@ private:
     cMessage *sendMsgEvent;
     cStdDev delayStats;
     cOutVector delayVector;
+    cStdDev jumpsStats;
 public:
     App();
     virtual ~App();
@@ -43,12 +44,16 @@ void App::initialize() {
     // Initialize statistics
     delayStats.setName("TotalDelay");
     delayVector.setName("Delay");
+    jumpsStats.setName("Jumps");
+
 }
 
 void App::finish() {
     // Record statistics
     recordScalar("Average delay", delayStats.getMean());
     recordScalar("Number of packets", delayStats.getCount());
+    recordScalar("Max hops", jumpsStats.getMax());
+    recordScalar("Min hops", jumpsStats.getMin());
 }
 
 void App::handleMessage(cMessage *msg) {
@@ -60,6 +65,7 @@ void App::handleMessage(cMessage *msg) {
         pkt->setByteLength(par("packetByteSize"));
         pkt->setSource(this->getParentModule()->getIndex());
         pkt->setDestination(par("destination"));
+        pkt->addPar("Jumps") = 0;
 
         // send to net layer
         send(pkt, "toNet$o");
@@ -73,8 +79,10 @@ void App::handleMessage(cMessage *msg) {
     else {
         // compute delay and record statistics
         simtime_t delay = simTime() - msg->getCreationTime();
+        long jumps = msg->par("Jumps").longValue();
         delayStats.collect(delay);
         delayVector.record(delay);
+        jumpsStats.collect(jumps);
         // delete msg
         delete (msg);
     }
