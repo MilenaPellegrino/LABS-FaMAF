@@ -142,12 +142,17 @@ void Net::handleMessage(cMessage *msg) {
                 //si no
                 //Marcamos que se hizo el testeo
                 testSent.insert(key);
-                //duplicamos el paquete original
-                Packet *test1 = pkt->dup();
-                Packet *test2 = pkt->dup();
-                //cambiamos el tipo de a test
+                //creamos paquetes de testeo
+                Packet *test1 = new Packet("testPacket1");
+                Packet *test2 = new Packet("testPacket2");
                 test1->setPacketType(1);
                 test2->setPacketType(1);
+                test1->setSource(myIndex);
+                test2->setSource(myIndex);
+                test1->setDestination(dest);
+                test2->setDestination(dest);
+                test1->setByteLength(128);
+                test2->setByteLength(128);
                 //lo enviamos por ambos lados
                 send(test1, "toLnk$o", 0); // horario
                 send(test2, "toLnk$o", 1); // antihorario
