@@ -41,7 +41,7 @@ void Net::handleMessage(cMessage *msg) {
 
     // All msg (events) on net are packets
     Packet *pkt = (Packet *) msg;
-    chargeVector.record(1);
+    chargeVector.record(chargeVector.getValuesReceived()+1);
 
     // If this node is the final destination, send to App
     if (pkt->getDestination() == this->getParentModule()->getIndex()) {

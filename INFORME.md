@@ -1,7 +1,7 @@
 # Informe Lab4 2025 - Redes y Sistemas Distribuidos.
 
 Integrantes:
-* Gonzales Juan Pablo.
+* Gonzalez Juan Pablo.
 * Guerrero Diego Alejandro.
 * Madero Ismael.
 * Pellegrino Milena.
@@ -30,7 +30,7 @@ Empezaremos definiendo que es una red equilibrada, para eso dicha red debe cumpl
 
 Dicho esto podremos concluir que una red equilibrada **envia paquetes por el camino más corto con menos congestion**.
 
-Analizando dicha red podemos observar que su flujo de trabajo es el siguiente:
+Analizando dicha red podemos observar que su flujo  de trabajo es el siguiente:
 
 - Node[0] y Node[2] producen paquetes con destino a Node[5].
 - Todos los paquetes son enviados en sentido de las agujas del reloj.<br>
@@ -39,17 +39,22 @@ Esto quiere decir que en la red dada Node[0] envia a Node[7] y todos los demas n
 Ejemplo de ejecucion:<br>A la izq ejecucion del Node[0], a la derecha ejecucion de red, notar que estos ejemplos no son sincrónicos.<br>Los paquetes rojos son producidos por Node[0] y los azules por Node[2]:<br>
 ![Sample1](img/Sample1.gif) ![Sample](img/Sample.gif)
 
-Ejecutando esta red durante 200 segundos podemos ver la sig. cantidad de paquetes que pasaron por alguna cola de salida:<br>
+**Ejecutando esta red durante 200 segundos podemos ver lo sig:**
+
+Promedio de paquetes en colas de salida:<br>
 ![Buffers](img/Buffers.png)
 
 Puede apreciarse: 
 1. La ausencia de las colas de Node[3], Node[4], y Node[5].
-2. Node[2] y Node[1] son los que menor carga tienen.
-3. Node[0] es el de mayor carga.
-4. Node[7] y Node[6] poseen misma carga
+2. Node[0] es el de mayor carga.
+3. Node[2] tiene ligeramente mayor carga que los nodos del punto 4.
+4. Node[1], Node[6], y Node[7] son los que menor carga tienen.
 
 Razonamiento:
 1. Esto se debe a que no se envian paquetes por dichos nodos.
-2. Solo envian paquetes producidos por Node[2].
-3. Envia tanto los paquetes recibidos como los generados.
-4. Enian paquetes producidos por Node[0] y Node[2].
+2. Envia tanto los paquetes recibidos desde Node[1] como los generados.
+3. Unicamente envia los paquetes que genera.
+4. Solo envian paquetes recibidos.
+
+### Extra:
+Las graficas fueron generadas usando el sig. link de collab: [lab4_analisis](https://colab.research.google.com/drive/1AdbyTvdN3MwR7wmiGdik1NOO2emff0Gs?usp=sharing)
