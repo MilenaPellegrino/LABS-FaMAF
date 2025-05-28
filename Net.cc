@@ -1,11 +1,16 @@
 #ifndef NET
 #define NET
 
+//Los tipos de paquetes
 const int TEST = 1;
 const int FEEDBACK = 2;
 
+//Los sentidos de envío
 const int HORARIA = 0;
 const int ANTIHORARIA = 1;
+
+//Este es la X cantidad de paquetes que se envían hasta que se vuelve a reevaluar la ruta óptima
+const int RESET_TESTING = 15;
 
 #include <string.h>
 #include <omnetpp.h>
@@ -16,20 +21,20 @@ using namespace std;
 
 class Net: public cSimpleModule {
 private:
-    int currentInterface = HORARIA;
-    map<int, bool> arrivalPackage;  // Dado un origin nos devuelve si ya llego el primer paquete de testeo
-    bool sendPackage = true;
-    int sendedPackage = 0;
+    int currentInterface = HORARIA; //En principio empieza a enviar en sentido horario
+    map<int, bool> arrivalPackage; //Dado un origin nos devuelve si ya llego el primer paquete de testeo
+    bool sendPackage = true; //Inicializamos en true, porque lo primero que tenemos que hacer es testear las rutas
+    int sendedPackage = 0; //No hay paquetes enviados
 public:
     Net();
     virtual ~Net();
 protected:
     virtual void initialize();
     virtual void finish();
-    virtual void handleMessage(cMessage *msg);
-    virtual void routing(cMessage *msg);
-    virtual void crearFeedback(cMessage *msg);
-    virtual int gateOpuesto(cMessage *msg);
+    virtual void handleMessage(cMessage *msg); //Manejo de mensajes
+    virtual void routing(cMessage *msg); //Metodo encargado de mandar los testeos de rutas.
+    virtual void crearFeedback(cMessage *msg); //Encargado de mandar los feedBack
+    virtual int gateOpuesto(cMessage *msg); //Dado un paquete/mensaje, devuelve el gate opuesto por el que llego ese paquete
 };
 
 
@@ -44,7 +49,6 @@ Net::~Net() {
 }
 
 void Net::initialize() {
-    
 }
 
 void Net::finish() {
@@ -53,19 +57,23 @@ void Net::finish() {
 void Net::routing(cMessage *msg){
     Packet *pkt = (Packet *) msg;
 
-    // creamos paquetes de testeo
+    //Creamos paquetes de testeo
     Packet *test0 = new Packet("testPacket0", this->getParentModule()->getIndex());
     Packet *test1 = new Packet("testPacket1", this->getParentModule()->getIndex());
 
+    //Seteamos los tipos
     test0->setPacketType(TEST);
     test1->setPacketType(TEST);
 
+    //Seteamos el origen
     test0->setSource(this->getParentModule()->getIndex());
     test1->setSource(this->getParentModule()->getIndex());
 
+    //Seteamos el destino
     test0->setDestination(pkt->getDestination());
     test1->setDestination(pkt->getDestination());
 
+    //Seteamos el largo ----------------------------------------------------------REVISAR
     test0->setByteLength(pkt->getByteLength());
     test1->setByteLength(pkt->getByteLength());
 
@@ -76,107 +84,106 @@ void Net::routing(cMessage *msg){
 }
 
 void Net::crearFeedback(cMessage *msg){
-
     Packet *pkt = (Packet *) msg;
 
-    // creamos paquetes de feedback
+    //Creamos paquete de feedback
     Packet *feedback = new Packet("feedback", this->getParentModule()->getIndex());
 
+    //Seteamos el tipo
     feedback->setPacketType(FEEDBACK);
 
-    // El origin del feedback es el destino del paquete testeo
+    //El origin del feedback es el destino del paquete testeo
     feedback->setSource(pkt->getDestination());
 
-    // El destino del feedback es el origen del paquete de testeo
+    //El destino del feedback es el origen del paquete de testeo
     feedback->setDestination(pkt->getSource());
 
+    //El mismo tamaño que el paquete de testeo -----------------------------------REVISAR
     feedback->setByteLength(pkt->getByteLength());
     
-    // Enviamos los paquetes de testeo por la ruta optima elegida
+    //Enviamos el paquete feedback por la ruta que llego el primer paquete test
     send(feedback, "toLnk$o", pkt->getArrivalGate()->getIndex());
 }
 
 int Net::gateOpuesto(cMessage *msg){
     Packet *pkt = (Packet *) msg;
+    //El index del Gate por el que llego
     int arrivedGate = pkt->getArrivalGate()->getIndex();
-    // enviamos por el lado opuesto
+
+    //Nos interesa retornar el gate contrario
+    //-----------------Al tratarse de interfaz booleana, podría negarse, pero entendemos que es menos expresivo. (Se entiende menos)
     int interfazOpuesta;
+
     if(arrivedGate == HORARIA){
         interfazOpuesta = ANTIHORARIA;
     }else{
         interfazOpuesta = HORARIA;
     }
+
     return interfazOpuesta;
 }
 
 void Net::handleMessage(cMessage *msg) {
-    // All msg (events) on net are packets
+    //Casteo el mensaje a Packet
     Packet *pkt = (Packet *) msg;
 
+    //Me interesa saber si el paquete recibido viene de APP
     cGate * arrivalGate = pkt->getArrivalGate();
-    if(arrivalGate != nullptr){
+    if(arrivalGate != nullptr){ //Este if agrega robustez
         const char * gateName = arrivalGate->getName();
-        if(strcmp(gateName, "toApp$i") == 0){
-            if(sendPackage){
-                routing(msg);
-                sendPackage = false;
-                sendedPackage = 0;
+        if(strcmp(gateName, "toApp$i") == 0){ //---------------ESTE IF ES EL CLAVE------------------
+            if(sendPackage){ //Me fijo si toca enviar paquetes TEST.
+                routing(msg); //Envió los TEST.
+                sendPackage = false; //Creo que esto se puede borrar, ya que lo seteo abajo.
+                sendedPackage = 0; //Reseteo el counter de paquetes enviados.
             } 
-            sendedPackage++;
-            sendPackage = sendedPackage > 15;
+            sendedPackage++; //Pase lo que pase, incremento en contador de paquetes enviados (incluyendo a los TEST).
+            sendPackage = sendedPackage > RESET_TESTING; //Me fijo si ya alcanzamos los paquetes necesarios para reevaluar con TEST.
         }
-
     }
 
-    //total de nodos
-    int numHosts = getParentModule()->getVectorSize();
-    //nodo actual
+    //Nodo actual
     int myIndex = this->getParentModule()->getIndex();
-    //destino
+    //Destino
     int dest = pkt->getDestination();
-    //origen
+    //Origen
     int origin = pkt->getSource();
-
-    //tipo de paquete
+    //Tipo de paquete
     int type = pkt->getPacketType();
 
-    if (type == FEEDBACK) {
-        if (dest == myIndex) {
-            // Llego a su destino
-            currentInterface = pkt->getArrivalGate()->getIndex();
-            delete pkt; // ya no se necesita
-        } else {  // No llego a destino 
-            send(pkt, "toLnk$o",   gateOpuesto(msg));
-        }          
-    } else if(type == TEST){
-        // Si el test no llego a destino lo seguimos mandando por esa ruta
-        if(dest!= myIndex){send(pkt, "toLnk$o", gateOpuesto(msg));}
-
-        // Si el test llego a destino
-        if(dest==myIndex){
-            auto it = arrivalPackage.find(origin);
-            if(it == arrivalPackage.end() || !(it->second)){
-                arrivalPackage[origin] = true;
-                currentInterface = gateOpuesto(msg);
-                crearFeedback(msg);
-            } else{
-                arrivalPackage[origin] = false;
+    if (type == FEEDBACK) { //TIPO DE PAQUETE FEEDBACK
+        if (dest != myIndex){ //Si no llego a destinio, sigue el mismo sentido
+            send(pkt, "toLnk$o", gateOpuesto(msg));
+        }
+        //-----------------------------REVISAR SI ES MÁS EXPRESIVO ASÍ O CON ELSE (pero es equivalente).
+        if (dest == myIndex) { //Llego a su destino
+            currentInterface = pkt->getArrivalGate()->getIndex(); //Actualizo la ruta óptima ------------REVISAR (explicar en llamada)
+            delete pkt; //Borramos el paquete
+        }
+    } else if(type == TEST){ //TIPO DE PAQUETE TEST
+        if(dest != myIndex){ //Si no llego a destino, sigue el mismo sentido
+            send(pkt, "toLnk$o", gateOpuesto(msg));
+        }
+        //-----------------------------REVISAR SI ES MÁS EXPRESIVO ASÍ O CON ELSE (pero es equivalente).
+        if(dest == myIndex){ //Si el test llego a destino
+            auto it = arrivalPackage.find(origin); //arrivalPackage devuelve un iterador (consultar)
+            if(it == arrivalPackage.end() || !(it->second)){ //Si no existe en el map o si es false
+                arrivalPackage[origin] = true; //Lo creamos o seteamos en true (SI LLEGO PAQUETE TEST)
+                currentInterface = gateOpuesto(msg); //Actualizo la ruta óptima -----------------------REVISAR (explicar en llamada)
+                crearFeedback(msg); //Creo y envio feedBack
+            } else {
+                arrivalPackage[origin] = false; //Si ya había llegado un test, seteo el false para que el próximo test si lo tenga en cuenta. NO ES TRIVIAL
             }
-            
-            delete pkt;
+            delete pkt; //Lo borro
         }
 
-    }else{  // El paquete es "normal" 
-        if(dest == myIndex){ // Esta en el destino
-            send(pkt, "toApp$o");
-        } else if (origin == myIndex){  // Esta al principio 
-            send(pkt, "toLnk$o", currentInterface);
-        } else {  // Esta en un nodo intermedio 
-            send(pkt, "toLnk$o",   gateOpuesto(msg));
+    }else{  // El paquete es "normal" o de dato
+        if(dest == myIndex){ //Esta en el destino
+            send(pkt, "toApp$o"); //Lo mando a APP
+        } else if (origin == myIndex){ //Esta al principio (lo acabo de recibir de APP)
+            send(pkt, "toLnk$o", currentInterface); //Lo envio por la ruta óptima actual
+        } else {  //Esta en un nodo intermedio
+            send(pkt, "toLnk$o",   gateOpuesto(msg)); //Lo envio por el gate opuesto al recibido
         }
     }
-
 }   
-    
-
-    
