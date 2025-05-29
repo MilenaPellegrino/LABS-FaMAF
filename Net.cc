@@ -10,7 +10,7 @@ const int HORARIA = 0;
 const int ANTIHORARIA = 1;
 
 //Este es la X cantidad de paquetes que se envían hasta que se vuelve a reevaluar la ruta óptima
-const int RESET_TESTING = 15;
+const int RESET_TESTING = 20;
 
 #include <string.h>
 #include <omnetpp.h>
@@ -126,8 +126,16 @@ int Net::gateOpuesto(cMessage *msg){
 void Net::handleMessage(cMessage *msg) {
     //Casteo el mensaje a Packet
     Packet *pkt = (Packet *) msg;
+    //Nodo actual
+    int myIndex = this->getParentModule()->getIndex();
+    //Destino
+    int dest = pkt->getDestination();
+    //Origen
+    int origin = pkt->getSource();
+    //Tipo de paquete
+    int type = pkt->getPacketType();
 
-    //Me interesa saber si el paquete recibido viene de APP
+/*     //Me interesa saber si el paquete recibido viene de APP
     cGate * arrivalGate = pkt->getArrivalGate();
     if(arrivalGate != nullptr){ //Este if agrega robustez
         const char * gateName = arrivalGate->getName();
@@ -140,16 +148,8 @@ void Net::handleMessage(cMessage *msg) {
             sendedPackage++; //Pase lo que pase, incremento en contador de paquetes enviados (incluyendo a los TEST).
             sendPackage = sendedPackage > RESET_TESTING; //Me fijo si ya alcanzamos los paquetes necesarios para reevaluar con TEST.
         }
-    }
-
-    //Nodo actual
-    int myIndex = this->getParentModule()->getIndex();
-    //Destino
-    int dest = pkt->getDestination();
-    //Origen
-    int origin = pkt->getSource();
-    //Tipo de paquete
-    int type = pkt->getPacketType();
+    } */
+    //En la línea 183 es exactamente el mismo caso
 
     if (type == FEEDBACK) { //TIPO DE PAQUETE FEEDBACK
         if (dest != myIndex){ //Si no llego a destinio, sigue el mismo sentido
@@ -181,7 +181,13 @@ void Net::handleMessage(cMessage *msg) {
         if(dest == myIndex){ //Esta en el destino
             send(pkt, "toApp$o"); //Lo mando a APP
         } else if (origin == myIndex){ //Esta al principio (lo acabo de recibir de APP)
-            send(pkt, "toLnk$o", currentInterface); //Lo envio por la ruta óptima actual
+            if(sendPackage){ //Me fijo si toca enviar paquetes TEST.
+                routing(msg); //Envió los TEST.
+                sendedPackage = 0; //Reseteo el counter de paquetes enviados.
+            } 
+            sendedPackage++; //Pase lo que pase, incremento en contador de paquetes enviados (incluyendo a los TEST).
+            sendPackage = sendedPackage > RESET_TESTING; //Me fijo si ya alcanzamos los paquetes necesarios para reevaluar con TEST.
+            send(pkt, "toLnk$o", currentInterface); //Envio el paquete original a destino
         } else {  //Esta en un nodo intermedio
             send(pkt, "toLnk$o",   gateOpuesto(msg)); //Lo envio por el gate opuesto al recibido
         }
