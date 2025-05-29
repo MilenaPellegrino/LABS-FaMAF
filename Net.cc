@@ -25,6 +25,14 @@ private:
     map<int, bool> arrivalPackage; //Dado un origin nos devuelve si ya llego el primer paquete de testeo
     bool sendPackage = true; //Inicializamos en true, porque lo primero que tenemos que hacer es testear las rutas
     int sendedPackage = 0; //No hay paquetes enviados
+
+    //Vectores para analisis
+    //CARGA
+    cOutVector chargeVector;
+    //PAQUETES TEST GENERADOS
+    cOutVector testGenerated;
+    //PAQUETES FEEDBACK GENERADOS
+    cOutVector feedBackGenerated;
 public:
     Net();
     virtual ~Net();
@@ -49,9 +57,14 @@ Net::~Net() {
 }
 
 void Net::initialize() {
+    chargeVector.setName("charge");
+    testGenerated.setName("tests");
+    feedBackGenerated.setName("feedBacks");
 }
 
 void Net::finish() {
+    recordScalar("charge", chargeVector.getValuesReceived());
+
 }
 
 void Net::routing(cMessage *msg){
@@ -77,6 +90,9 @@ void Net::routing(cMessage *msg){
     test0->setByteLength(pkt->getByteLength());
     test1->setByteLength(pkt->getByteLength());
 
+    //IMPORTANTE: ESTE VECTOR CUENTA LA CANTIDAD DE EVALUACIONES DE RUTA
+    //CANTIDAD DE PAQUETES TEST = 2 * ESTE VECTOR
+    testGenerated.record(1);
     
     // Enviamos los paquetes de testeo 
     send(test0, "toLnk$o", 0); // horario
@@ -100,6 +116,8 @@ void Net::crearFeedback(cMessage *msg){
 
     //El mismo tamaño que el paquete de testeo -----------------------------------REVISAR
     feedback->setByteLength(pkt->getByteLength());
+
+    feedBackGenerated.record(1);
     
     //Enviamos el paquete feedback por la ruta que llego el primer paquete test
     send(feedback, "toLnk$o", pkt->getArrivalGate()->getIndex());
@@ -126,6 +144,7 @@ int Net::gateOpuesto(cMessage *msg){
 void Net::handleMessage(cMessage *msg) {
     //Casteo el mensaje a Packet
     Packet *pkt = (Packet *) msg;
+    chargeVector.record(chargeVector.getValuesReceived()+1);
     //Nodo actual
     int myIndex = this->getParentModule()->getIndex();
     //Destino
@@ -187,8 +206,20 @@ void Net::handleMessage(cMessage *msg) {
             } 
             sendedPackage++; //Pase lo que pase, incremento en contador de paquetes enviados (incluyendo a los TEST).
             sendPackage = sendedPackage > RESET_TESTING; //Me fijo si ya alcanzamos los paquetes necesarios para reevaluar con TEST.
+            //Tomo los jumps de ese paquete
+            long jumps = msg->par("Jumps").longValue();
+            //Lo incremento en 1
+            jumps++;
+            //Lo vuelvo a settear
+            msg->par("Jumps").setLongValue(jumps);
             send(pkt, "toLnk$o", currentInterface); //Envio el paquete original a destino
         } else {  //Esta en un nodo intermedio
+            //Tomo los jumps de ese paquete
+            long jumps = msg->par("Jumps").longValue();
+            //Lo incremento en 1
+            jumps++;
+            //Lo vuelvo a settear
+            msg->par("Jumps").setLongValue(jumps);
             send(pkt, "toLnk$o",   gateOpuesto(msg)); //Lo envio por el gate opuesto al recibido
         }
     }
