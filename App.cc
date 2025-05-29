@@ -12,7 +12,7 @@ private:
     cMessage *sendMsgEvent;
     cStdDev delayStats;
     cOutVector delayVector;
-    cStdDev jumpsStats;
+    cOutVector jumpsStats;
 public:
     App();
     virtual ~App();
@@ -52,8 +52,6 @@ void App::finish() {
     // Record statistics
     recordScalar("Average delay", delayStats.getMean());
     recordScalar("Number of packets", delayStats.getCount());
-    recordScalar("Max hops", jumpsStats.getMax());
-    recordScalar("Min hops", jumpsStats.getMin());
 }
 
 void App::handleMessage(cMessage *msg) {
@@ -82,7 +80,7 @@ void App::handleMessage(cMessage *msg) {
         long jumps = msg->par("Jumps").longValue();
         delayStats.collect(delay);
         delayVector.record(delay);
-        jumpsStats.collect(jumps);
+        jumpsStats.record(jumps);
         // delete msg
         delete (msg);
     }
