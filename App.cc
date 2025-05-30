@@ -43,7 +43,9 @@ void App::initialize() {
 
     // Initialize statistics
     delayStats.setName("TotalDelay");
-    delayVector.setName("Jumps");
+    delayVector.setName("Delay");
+    jumpsStats.setName("Jumps");
+
 }
 
 void App::finish() {
@@ -83,5 +85,4 @@ void App::handleMessage(cMessage *msg) {
         // delete msg
         delete (msg);
     }
-
 }

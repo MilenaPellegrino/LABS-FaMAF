@@ -10,7 +10,7 @@ const int HORARIA = 0;
 const int ANTIHORARIA = 1;
 
 //Este es la X cantidad de paquetes que se envían hasta que se vuelve a reevaluar la ruta óptima
-const int RESET_TESTING = 20;
+const int RESET_TESTING = 30;
 
 #include <string.h>
 #include <omnetpp.h>
@@ -64,7 +64,6 @@ void Net::initialize() {
 
 void Net::finish() {
     recordScalar("charge", chargeVector.getValuesReceived());
-
 }
 
 void Net::routing(cMessage *msg){
@@ -86,9 +85,9 @@ void Net::routing(cMessage *msg){
     test0->setDestination(pkt->getDestination());
     test1->setDestination(pkt->getDestination());
 
-    //Seteamos el largo ----------------------------------------------------------REVISAR
-    test0->setByteLength(pkt->getByteLength());
-    test1->setByteLength(pkt->getByteLength());
+    //Seteamos el largo
+    test0->setByteLength((par("packetByteSizeTyF")));
+    test1->setByteLength((par("packetByteSizeTyF")));
 
     //IMPORTANTE: ESTE VECTOR CUENTA LA CANTIDAD DE EVALUACIONES DE RUTA
     //CANTIDAD DE PAQUETES TEST = 2 * ESTE VECTOR
@@ -114,7 +113,7 @@ void Net::crearFeedback(cMessage *msg){
     //El destino del feedback es el origen del paquete de testeo
     feedback->setDestination(pkt->getSource());
 
-    //El mismo tamaño que el paquete de testeo -----------------------------------REVISAR
+    //El mismo tamaño que el paquete de testeo
     feedback->setByteLength(pkt->getByteLength());
 
     feedBackGenerated.record(1);
@@ -154,22 +153,6 @@ void Net::handleMessage(cMessage *msg) {
     //Tipo de paquete
     int type = pkt->getPacketType();
 
-/*     //Me interesa saber si el paquete recibido viene de APP
-    cGate * arrivalGate = pkt->getArrivalGate();
-    if(arrivalGate != nullptr){ //Este if agrega robustez
-        const char * gateName = arrivalGate->getName();
-        if(strcmp(gateName, "toApp$i") == 0){ //---------------ESTE IF ES EL CLAVE------------------
-            if(sendPackage){ //Me fijo si toca enviar paquetes TEST.
-                routing(msg); //Envió los TEST.
-                sendPackage = false; //Creo que esto se puede borrar, ya que lo seteo abajo.
-                sendedPackage = 0; //Reseteo el counter de paquetes enviados.
-            } 
-            sendedPackage++; //Pase lo que pase, incremento en contador de paquetes enviados (incluyendo a los TEST).
-            sendPackage = sendedPackage > RESET_TESTING; //Me fijo si ya alcanzamos los paquetes necesarios para reevaluar con TEST.
-        }
-    } */
-    //En la línea 183 es exactamente el mismo caso
-
     if (type == FEEDBACK) { //TIPO DE PAQUETE FEEDBACK
         if (dest != myIndex){ //Si no llego a destinio, sigue el mismo sentido
             send(pkt, "toLnk$o", gateOpuesto(msg));
@@ -188,7 +171,6 @@ void Net::handleMessage(cMessage *msg) {
             auto it = arrivalPackage.find(origin); //arrivalPackage devuelve un iterador (consultar)
             if(it == arrivalPackage.end() || !(it->second)){ //Si no existe en el map o si es false
                 arrivalPackage[origin] = true; //Lo creamos o seteamos en true (SI LLEGO PAQUETE TEST)
-                currentInterface = gateOpuesto(msg); //Actualizo la ruta óptima -----------------------REVISAR (explicar en llamada)
                 crearFeedback(msg); //Creo y envio feedBack
             } else {
                 arrivalPackage[origin] = false; //Si ya había llegado un test, seteo el false para que el próximo test si lo tenga en cuenta. NO ES TRIVIAL
