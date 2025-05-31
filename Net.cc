@@ -21,10 +21,11 @@ using namespace std;
 
 class Net: public cSimpleModule {
 private:
+    int sendedPackage = 0;
     int currentInterface = HORARIA; //En principio empieza a enviar en sentido horario
     map<int, bool> arrivalPackage; //Dado un origin nos devuelve si ya llego el primer paquete de testeo
-    bool sendPackage = true; //Inicializamos en true, porque lo primero que tenemos que hacer es testear las rutas
-    int sendedPackage = 0; //No hay paquetes enviados
+    bool sendPackage = false; //Inicializamos en false, porque el primero que va a testear las rutas es firstTest
+    bool firstTest = true; //Tiene que hacer el primer test
 
     //Vectores para analisis
     //CARGA
@@ -179,11 +180,21 @@ void Net::handleMessage(cMessage *msg) {
         }
 
     }else{  // El paquete es "normal" o de dato
+
         if(dest == myIndex){ //Esta en el destino
             send(pkt, "toApp$o"); //Lo mando a APP
-        } else if (origin == myIndex){ //Esta al principio (lo acabo de recibir de APP)
+        } 
+        
+        else if (origin == myIndex){ //Esta al principio (lo acabo de recibir de APP)
+            if (firstTest) { //Me fijo si es el primer test que tengo que hacer
+                routing(msg); //Mando el primer test
+                firstTest = false; //Lo seteo en false por el resto de la simulación
+
+                //Para evitar la sincronización masiva
+                int sendedPackage = static_cast<int>((static_cast<double>(this->getParentModule()->getIndex() % 10) / 10.0) * RESET_TESTING); //Todos los nodos van a arrancar con una cantidad distinta de paquetes enviados
+            }
             if(sendPackage){ //Me fijo si toca enviar paquetes TEST.
-                routing(msg); //Envió los TEST.
+                routing(msg); //Envio los TEST.
                 sendedPackage = 0; //Reseteo el counter de paquetes enviados.
             } 
             sendedPackage++; //Pase lo que pase, incremento en contador de paquetes enviados (incluyendo a los TEST).
@@ -195,7 +206,9 @@ void Net::handleMessage(cMessage *msg) {
             //Lo vuelvo a settear
             msg->par("Jumps").setLongValue(jumps);
             send(pkt, "toLnk$o", currentInterface); //Envio el paquete original a destino
-        } else {  //Esta en un nodo intermedio
+        }
+        
+        else {  //Esta en un nodo intermedio
             //Tomo los jumps de ese paquete
             long jumps = msg->par("Jumps").longValue();
             //Lo incremento en 1
