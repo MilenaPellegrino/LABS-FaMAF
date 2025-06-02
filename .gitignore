@@ -1,0 +1,43 @@
+# Plantilla inspirada y modificada para nuestro lab en https://github.com/omnetpp/omnetpp/blob/master/.gitignore 
+
+# Archivos de compilación y carpetas temporales de OMNeT++
+*.exe
+*.obj
+*.o
+*.log
+*.ilk
+*.pdb
+*.idb
+*.class
+*.so
+*.dll
+*.a
+*.lib
+
+# Carpetas de compilación típicas
+out/*
+build/*
+bin/*
+debug/*
+
+# Carpeta de resultados 
+results/*
+
+# Archivos generados por OMNeT++ durante la compilación
+*.net.xml
+*.vec
+*.sca
+*.vci
+*.vcd
+
+# Archivos temporales, caché o backup
+*~
+*.tmp
+*.bak
+*.swp
+
+# Ejecutable
+lab4-kickstarter
+
+# Para archivos locales (yo uso commitizen)
+*.json

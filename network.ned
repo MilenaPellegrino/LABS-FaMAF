@@ -13,6 +13,7 @@ simple Net
 {
     parameters:
         @display("i=block/dispatch");
+        int packetByteSizeTyF = default(62);
     gates:
         inout toApp;
         inout toLnk[];
