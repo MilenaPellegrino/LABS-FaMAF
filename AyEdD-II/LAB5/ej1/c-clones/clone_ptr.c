@@ -1,0 +1,101 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include "ansicolors.h"
+
+#define MAX_LENGTH 1820
+
+// PROBLEMA: 
+/*
+El problema de la funcion es que se esta devolviendo un puntero (*output) el cual "apunta" a la direccion de memoria del primer elemento de "clon". 
+Cuando la funcion termina, la variable local "clon" deja de existir (por el scope de las variables visto en laboratorios anteriores) entonces el puntero que se retorna ya no apunto a una ubicacion de memoria valida, apunta a algo que tiene datos basura, ya que a donde apuntaba adentro de la funcion dejo de existir. 
+*/
+
+
+/*
+char *string_clone(const char *str, size_t length) {
+    char clon[MAX_LENGTH];
+    char *output=clon;
+    for (size_t i=0; i<length;i++) {
+        output[i] = str[i];
+    }
+    output[length] = '\0';
+    return output;
+}
+*/
+// Reescribimos la funcion string_clone para que no produzca memory_leaks 
+
+char *string_clone(const char *str, size_t length){
+    char *output;
+    output = (char*) malloc(length + 1); //voy a usar la cantidad en length +1 por el caracterter null o '\0'
+    for(size_t i =0; i<length; i++){
+        output[i] = str[i];
+    }
+    output[length] = '\0';
+    return output;
+}
+
+int main(void) {
+    char *original=""
+         "______ time ago in a galaxy far, far away...\n\n\n"
+         ANSI_BRGOLD
+         "         _______..___________.     ___      .______             \n"
+         "        /       ||           |    /   \\     |   _  \\          \n"
+         "       |   (----``---|  |----`   /  ^  \\    |  |_)  |          \n"
+         "        \\   \\        |  |       /  /_\\  \\   |      /        \n"
+         "    .----)   |       |  |      /  _____  \\  |  |\\  \\----.    \n"
+         "    |_______/        |__|     /__/     \\__\\ | _| `._____|     \n"
+         "                                                                \n"
+         "____    __    ____      ___      .______           _______.     \n"
+         "\\   \\  /  \\  /   /     /   \\     |   _  \\         /       |\n"
+         " \\   \\/    \\/   /     /  ^  \\    |  |_)  |       |   (----` \n"
+         "  \\            /     /  /_\\  \\   |      /         \\   \\    \n"
+         "   \\    /\\    /     /  _____  \\  |  |\\  \\----..----)   |   \n"
+         "    \\__/  \\__/     /__/     \\__\\ | _| `._____||_______/     \n"
+         "\n\n\n"
+         "                           Episode II \n\n"
+         "                      ATTACK OF THE CLONES\n\n"
+         "                There is  unrest in the Galactic\n"
+         "                Senate. Several  thousand  solar\n"
+         "                systems  have   declared   their\n"
+         "                intentions to leave the Republic.\n\n"
+         "                This      separatist     movement,\n"
+         "                under  the   leadership   of  the\n"
+         "                mysterious   Count   Dooku,   has\n"
+         "                made it difficult for the limited\n"
+         "                number   of   Jedi   Knights   to\n"
+         "                maintain   peace   and  order  in\n"
+         "                the galaxy.\n\n"
+         "                Senator   Amidala,   the   former\n"
+         "                Queen   of  Naboo,  is  returning\n"
+         "                to  the  Galactic  Senate to vote\n"
+         "                on the critical issue of creating\n"
+         "                an    ARMY    OF   THE   REPUBLIC\n"
+         "                to    assist    the   overwhelmed\n"
+         "                Jedi....\n" ANSI_WHITE;
+    char *copy=NULL;
+    copy = string_clone(original, strlen(original));
+    // copy = string_clone(original, sizeof(original)/sizeof(*original));
+    printf("Original:\n" ANSI_CYAN
+            " %s\n", original);
+    copy[0] = 'A';
+    copy[1] = ' ';
+    copy[2] = 'l';
+    copy[3] = 'o';
+    copy[4] = 'n';
+    copy[5] = 'g';
+    printf("Copia   :\n" ANSI_CYAN
+           " %s\n", copy);
+
+    return EXIT_SUCCESS;
+}
+
+
+/*
+Al cambiar el tipo de la variable de char original[]="" a char *original=""
+Vemos que <<copy = string_clone(original, sizeof(original)/sizeof(*original));>> 
+
+Entonces el calculo del tamano de "original" estaria mal. ya que sizeof(original) nos va a dar el tamano del puntero original, ya que ahora esta declarada como puntero entonces no es el tamano de la cadena que es en realidad lo que quiero. 
+Para poder hacer esto usando la varirable como tipo puntero, puedo usar la funcion strlen entonces obtenog la longitud de la cadena. 
+
+*/
