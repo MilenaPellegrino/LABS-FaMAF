@@ -1,0 +1,199 @@
+{
+	"info": {
+		"_postman_id": "c062da8e-a00b-45f7-8ad6-b80e359ba3bd",
+		"name": "API PELICULAS (lab 1)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "43400818",
+		"_collection_link": "https://milena-801990.postman.co/workspace/Milena's-Workspace~63279fe8-a136-4802-8dd8-96a10d621c63/collection/43400818-c062da8e-a00b-45f7-8ad6-b80e359ba3bd?action=share&source=collection_link&creator=43400818"
+	},
+	"item": [
+		{
+			"name": "Agregar pelicula",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"titulo\": \"FaMAF: Donde entras pero no salis\",\n    \"genero\": \"Drama\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/peliculas",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"peliculas"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Listar Peliculas",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/peliculas",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"peliculas"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Actualizar pelicula",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"titulo\": \"The Fight Club\",\n    \"genero\": \"Crimen\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/peliculas/5",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"peliculas",
+						"5"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Eliminar pelicula",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/peliculas/7",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"peliculas",
+						"7"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Buscar por titulo",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/peliculas/buscar/PUlP",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"peliculas",
+						"buscar",
+						"PUlP"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Sugerir peli aleatoria",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/peliculas/aleatoria",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"peliculas",
+						"aleatoria"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Sugerir peli aleatoria por genero",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/peliculas/aleatoria/Drama",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"peliculas",
+						"aleatoria",
+						"Drama"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Sugerir peli para feriados por genero",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/peliculas/holiday/Drama",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"peliculas",
+						"holiday",
+						"Drama"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
