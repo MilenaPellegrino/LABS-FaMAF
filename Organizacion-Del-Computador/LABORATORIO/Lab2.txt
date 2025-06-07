@@ -1,0 +1,12 @@
+
+Integrantes del grupo: 
+    - Castillo Agustin
+    - Madero Ismael 
+    - Pellegrino Milena
+
+Explicacion de los ejercicios: 
+
+Ejercicio 1 -> Fondo estrellado simulando el espacio, con un astronauta y el planeta saturno. 
+Si se apreta la tecla "w" podemos ver a la luna con un satelite. 
+
+Ejercicio 2 ->
