@@ -1,2 +1,2 @@
 # LABS-FaMAF
-Laboratorios completos de Cs. de la Computación
+Laboratorios de Cs. de la Computación de FaMAF - UNC
