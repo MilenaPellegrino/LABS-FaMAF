@@ -1,0 +1,6 @@
+El objetivo de este proyecto es:
+Extender los conceptos relacionados con el desarrollo de programas en lenguaje C en base al
+formalismo visto en el te´orico/pr´actico de la materia.
+Introducir el uso de la librer´ıa assert.h para garantizar el cumplimiento de estados.
+Familiarizarse con el uso de Arreglos en el lenguaje “C”;
+Definir tipos abstractos nuevos b´asicos, utilizando el comando struct
