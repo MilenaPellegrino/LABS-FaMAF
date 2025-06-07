@@ -1,0 +1,15 @@
+[
+    {
+        "url": "https://rss.nytimes.com/services/xml/rss/nyt/%s.xml",
+        "urlParams": ["Business", "Technology"],
+        "urlType": "rss",
+        "download": "true"
+    },
+    {
+        "url": "https://www.reddit.com/r/%s/hot/.json?count=100",
+        "urlParams": ["Marketing", "Sales", "Entrepreneur", "Startups"],
+        "urlType": "reddit",
+        "download": "/home/fbustos/Documents/"
+
+    }
+]
