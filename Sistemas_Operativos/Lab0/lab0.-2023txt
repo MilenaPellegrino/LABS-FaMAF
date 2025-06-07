@@ -1,0 +1,90 @@
+1. ¿Qué modelo de procesador tiene tu equipo? Cuando necesitamos un dato
+del equipo, como por ejemplo el modelo del procesador, podemos buscar
+en el archivo /proc/cpuinfo. Sin embargo, este comando nos devuelve
+un listado muy largo y tienen que encontrar la forma de buscar sólo la
+información necesaria. Ayuda: ver la definición y el uso de los comandos
+cat y grep.
+
+cat /proc/cpuinfo | grep 'model name'
+
+
+2. Si la computadora tiene más de una unidad de ejecución (multi-core)
+seguramente en el punto anterior se repitió más de una vez el modelo
+del procesador. Averiguar cómo usar wc para poder determinar cuántas
+unidades de ejecución tiene el procesador, aprovechando los comandos
+utilizados en el ejercicio 1
+
+cat /proc/cpuinfo | grep 'model name' | wc -l
+(ya que -l me dice la cantidad de lineas que hay en lo que estoy buscando)
+
+3. Descarguen en libro Alicia en el país de las maravillas en txt (puede ser de
+este link), reemplacen todas las ocurrencias de Alice/Alicia por su nombre, y
+guarden el archivo como NOMBRE_en_el_pais_de_las_maravillas.txt o
+NOMBRE_in_wonderland.txt dependiendo del idioma en que lo encuentren.
+Sí, todo con un único comando, incluso la descarga del archivo. Puntos
+extra por borrar el archivo que original que descargaron
+
+wget -O alice.txt http://www.gutenberg.org/files/11/11-0.txt && sed 's/Alice/Milena/g' alice.txt > Milena_in_wonderland.txt && rm alice.txt
+
+(En la primera parte descargamos el libro en txt y lo guardamos como "alice.txt")
+(Con el comando sed, reemplazamos cada aparicion de Alice por Milena y lo guardamos en un nuevo archivo)
+(la ultima parte del comando rm la uso para eliminar el archivo "original")
+
+
+4. El archivo weather_cordoba.in contiene mediciones meteorológicas realizadas en un día en Córdoba. 
+Las primeras 3 columnas corresponden al año, mes y día de las mediciones. 
+Las restantes 6 columnas son la temperatura media, la máxima, la mínima, la presión atmosférica, la humedad y las precipitaciones medidas ese día. 
+Ordenar los días según su temperatura máxima y calcular máximo y mínimo. Puntos extra por mostrar en la pantalla sólo la fecha de dichos días (un comando para cada día). 
+Tengan en cuenta que para evitar los números reales, los grados están expresados en décimas de grados (por ejemplo, 15.2 grados está representado por 152 décimas). 
+La presión también ha sido multiplicada por 10 y las precipitaciones por 100, o sea que están expresadas en centésimas de milímetro.
+
+sort -t, -k4,4nr weather_cordoba.in -o sorted_weather_cordoba.in (para ordenar por la cuarta columna y el orden inverso)
+echo "Fecha con temperatura máxima:" && head -n 1 sorted_weather_cordoba.in | awk '{print $1" / "$2"/"$3}' 
+echo "Fecha con temperatura mínima:" && tail -n 1 sorted_weather_cordoba.in | awk '{print $1"/"$2"/"$3}'
+
+5. El archivo atpplayers.in es un listado por orden alfabético de jugadores profesionales de tenis. 
+El nombre del jugador viene acompañado de una abreviatura de su país, el número que ocupa en el ranking, su edad, su
+puntaje y el número de torneos jugados en el último año. 
+Ordenar el listado de jugadores según la posision en el ranking.
+
+sort -k3,3 -n atpplayers.in -o atpplayers_sorted.in 
+
+6. El archivo superliga.in contiene datos con el siguiente formato: nombre de equipo sin espacios, puntos, partidos jugados, partidos ganados, partidos empatados, partidos perdidos, goles a favor y goles en contra. 
+Ordenar la tabla del campeonato de la Superliga según la cantidad de puntos, y desempatar por diferencia de goles. 
+Ayuda: a todo lo que ya saben del ejercicio anterior, agreguen el uso del comando awk.
+
+awk '{
+    equipo = $1;
+    puntos = $2;
+    diferencia_goles = $7 - $8;
+    print equipo, puntos, diferencia_goles, $0;
+}' superliga.in | sort -k2,2nr -k3,3nr | awk '{
+    print $4, $5, $6, $7, $8, $9, $10, $11;
+}' > superliga_sort.out
+
+7. ¿Cómo ver la MAC address de nuestro equipo? Investiguen el comando
+ip. En la manual de grep van a encontrar la especificación de muchas
+operaciones, por ejemplo -o, -i, y muchas más. Algo muy utilizado son las
+expresiones regulares para realizar una búsqueda. En el manual de grep
+tienen un apartado donde explica su uso. Con esta información deberían
+poder construir una secuencia de comandos de shell para imprimir por
+consola la MAC address de su interfaz ethernet.
+
+ip link show | grep -o -E '([[:xdigit:]]{2}:){5}[[:xdigit:]]{2}'
+
+8. Supongamos que bajaron una serie de televisión completa con subtítulos (de forma completamente legal, por supuesto). 
+Sin embargo, los subtítulos tienen el sufijo _es en el nombre de cada archivo y para que puedan ser reproducidos en el televisor, que nunca fue demasiado smart, el archivo de subtítulos tiene que tener exactamente el mismo nombre que el archivo de video con la extensión srt. 
+
+La serie tiene más de 100 capítulos, imposible realizar los cambios uno a uno.
+ Para emular la situación, crear una carpeta con el nombre de la serie y dentro de ella crear 10 archivos con un nombre como
+fma_S01EXX_es.srt, donde XX es el número de capítulo, desde 1 hasta 10.
+
+Con un segundo comando (el que usarían realmente), cambiar el nombre de cada archivo sacando el sufijo _es.
+
+
+Comando para hacer los 10 archivos jasjja 
+mkdir Dr. House
+cd Dr. House
+for i in {01..10}; do touch "fma_S01E${i}_es.srt"; done
+
+for file in *_es.srt; do mv "$file" "${file/_es.srt/.srt}"; done
